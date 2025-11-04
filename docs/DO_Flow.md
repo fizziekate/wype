@@ -128,3 +128,12 @@ If actual file names differ (e.g., do_home-pressed_pressed.png instead of do_hom
 - do_home_pressed.png ↔ do_home-pressed_pressed.png
 - do_google_backup_unclicked.png ↔ google_backup_unclicked.png (if present)
 - do_google_backup_clicked.png ↔ google_backup_clicked.png (if present)
+
+
+### Assets verification (2025-11-04T15:09:42)
+- do_register.png => register.png
+- do_google_backup_unclicked.png => google_backup_unclicked.png
+- do_home_pressed.png => home_clicked.png
+- do_google_backup_clicked.png => google_backup_clicked.png
+- register_clicked.png OK
+
