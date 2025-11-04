@@ -1,0 +1,22 @@
+Wype First-Run & DO Flow — State Machine
+
+States/Routes:
+- Register (do_register.png)
+- Home (Instructions) (do_home_pressed.png)
+- Google Backup (do_google_backup_unclicked.png)
+- Google Backup Confirmed (do_google_backup_clicked.png)
+- Enable Device Owner (action -> send DO email -> factory reset -> Setup Wizard)
+
+Transitions:
+- onAppFirstRun -> Register
+- onRegisterSubmit(success) -> Home
+- Home.onTapBackup -> Google Backup
+- Google Backup.onBackupConfirm -> Google Backup Confirmed
+- Google Backup Confirmed.onBack -> Home
+- Home.onTapEnableDO -> (send DO email) -> factory reset (external) -> Setup Wizard
+- Setup Wizard: Don’t copy -> Scan QR -> Wype becomes DO -> App auto-launch -> onReidentify -> Home
+
+Notes/Constraints:
+- DO must happen before Google backup restore. Choose “Don’t copy” during Setup Wizard.
+- Identity is server-side; after reset user re-verifies (OTP/magic link).
+- Universal QR allowed; identity after provisioning.
