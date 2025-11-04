@@ -1,0 +1,23 @@
+Subject: Your Wype Setup – Scan this QR to enable Device Owner
+
+Hi there,
+
+Thanks for purchasing Wype.
+
+To activate voice-triggered factory reset, Wype needs to become the Device Owner on your device.
+
+IMPORTANT – do these steps after your phone resets:
+1. Connect to Wi-Fi
+2. When Android asks “Copy apps & data?” — tap Don’t Copy
+3. When you’re asked to scan a QR code — scan the Wype QR below
+4. Wype will auto-install as Device Owner
+5. Once setup is complete you can restore your Google backup normally
+
+Wype never stores any of your personal data.
+
+Please keep this email safe so you can access the QR when needed.
+
+Kind regards,
+Wype Team
+
+[Attach or embed the Wype DO QR here (universal QR is acceptable)]
