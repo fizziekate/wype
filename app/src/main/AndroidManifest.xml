@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Speech Recognition Permissions -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    
+    <!-- Android 14+ Foreground Service Audio Permission -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_AUDIO" />
+    
+    <!-- SMS Permissions -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    
+    <!-- Location Permissions (for emergency SMS) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    
+    <!-- Device Admin Permission -->
+    <uses-permission android:name="android.permission.BIND_DEVICE_ADMIN" />
+    
+    <!-- Background Service Permissions -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    
+    <!-- Google Backup Permissions -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    
+    <!-- Boot receiver for starting service after restart -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    
+    <!-- Notification permissions for Android 13+ -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    
+    <!-- Biometric Authentication Permissions -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+    
+    <!-- Additional permissions for background operation -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    
+    <!-- Android 13+ exact alarm permission for wake-ups -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    
+    <!-- Accessibility Service Permission -->
+    <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
+    
+    <!-- Queries for SMS and telephony providers (Android 11+ compatibility) -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="sms" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="smsto" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".WypeApp"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@drawable/icon"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/icon"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Wype"
+        tools:targetApi="31">
+        
+        <!-- Bootstrap Activity (deep link receiver) -->
+        <activity
+            android:name=".ui.bootstrap.BootstrapActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Wype.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="wype" android:host="bootstrap" />
+            </intent-filter>
+        </activity>
+        
+        <!-- Login Activity (Launcher) -->
+        <activity
+            android:name=".ui.auth.LoginActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Wype.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        
+        <!-- Register Activity -->
+        <activity
+            android:name=".ui.auth.RegisterActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Wype.NoActionBar" />
+        
+        <!-- Main Activity -->
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Wype.NoActionBar" />
+        
+        <!-- Background Speech Service (Legacy) -->
+        <service
+            android:name=".service.SpeechListenerService"
+            android:enabled="false"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+            
+        <!-- Silent Speech Service (DISABLED - causes beeping) -->
+        <service
+            android:name=".service.SilentSpeechService"
+            android:enabled="false"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+        
+        <!-- Porcupine Wake Word Service (DISABLED - causes beeping) -->
+        <service
+            android:name=".services.PorcupineService"
+            android:enabled="false"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+        
+        
+        <!-- Emergency SMS Service -->
+        <service
+            android:name=".service.EmergencySmsService"
+            android:enabled="true"
+            android:exported="false" />
+        
+        <!-- Google Backup Service -->
+        <service
+            android:name=".service.GoogleBackupService"
+            android:enabled="true"
+            android:exported="false" />
+        
+        <!-- Device Admin Receiver -->
+        <receiver
+            android:name=".admin.WypeDeviceAdminReceiver"
+            android:permission="android.permission.BIND_DEVICE_ADMIN"
+            android:exported="true">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin_policies" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+                <action android:name="android.app.action.DEVICE_ADMIN_DISABLED" />
+            </intent-filter>
+        </receiver>
+        
+        <!-- Boot Receiver -->
+        <receiver
+            android:name=".receiver.BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+        
+        <!-- Hotword Boot Persistence Receiver -->
+        <receiver
+            android:name="com.wype.security.hotword.BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter android:priority="900">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+        
+        <!-- Service Watchdog Receiver -->
+        <receiver
+            android:name=".service.ServiceWatchdog"
+            android:enabled="true"
+            android:exported="false" />
+        
+        <!-- WYPE Silent Hotword Service (DISABLED - using accessibility service instead) -->
+        <service
+            android:name="com.wype.security.hotword.WypeHotwordService"
+            android:enabled="false"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+        
+        <!-- Protection Mode Service (ENABLED for emergency detection) -->
+        <service
+            android:name=".service.ProtectionModeService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+        
+        <!-- Factory Reset Service -->
+        <service
+            android:name=".service.FactoryResetService"
+            android:enabled="true"
+            android:exported="false" />
+        
+        <!-- Emergency Alert Worker (WorkManager) -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
+        
+        <!-- New Silent HotwordService (No Beeping) -->
+        <service
+            android:name=".service.HotwordService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+        
+        <!-- WYPE Accessibility Service -->
+        <service
+            android:name=".accessibility.WypeAccessibilityService"
+            android:exported="false"
+            android:label="@string/accessibility_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
+    </application>
+
+</manifest>

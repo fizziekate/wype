@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.auth.LoginActivity">
+
+    <!-- Login screen background image -->
+    <ImageView
+        android:id="@+id/login_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/login"
+        android:scaleType="centerCrop" />
+
+    <!-- Main content container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="198dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Email input field -->
+
+        <!-- Password input field -->
+
+        <!-- Login button -->
+
+        <!-- Register button -->
+
+        <EditText
+            android:id="@+id/et_password"
+            android:layout_width="269dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="175dp"
+            android:layout_marginBottom="-205dp"
+            android:alpha="1.0"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:hint=""
+            android:inputType="textPassword"
+            android:padding="16dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="@android:color/transparent"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/et_email"
+            android:layout_width="264dp"
+            android:layout_height="58dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="85dp"
+            android:alpha="1.0"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:hint=""
+            android:inputType="textEmailAddress"
+            android:padding="16dp"
+            android:textColor="#0066FF"
+            android:textColorHint="@android:color/transparent"
+            android:textSize="20sp" />
+
+        <Button
+            android:id="@+id/btn_login"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:layout_marginTop="70dp"
+            android:layout_marginBottom="40dp"
+            android:alpha="0.01"
+            android:background="@android:color/transparent"
+            android:baselineAligned="false"
+            android:clickable="true"
+            android:focusable="true"
+            android:text=""
+            android:textColor="@android:color/transparent"
+            android:textSize="0sp" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_register"
+        android:layout_width="138dp"
+        android:layout_height="54dp"
+        android:layout_gravity="end"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="625dp"
+        android:alpha=".01"
+        android:background="@android:color/transparent"
+        android:clickable="true"
+        android:focusable="true"
+        android:text=""
+        android:textColor="@android:color/transparent"
+        android:textSize="0sp" />
+
+    <!-- Fingerprint Login Button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_fingerprint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="24dp"
+        android:src="@drawable/ic_fingerprint"
+        android:contentDescription="@string/biometric_login_button"
+        app:tint="@android:color/white"
+        app:backgroundTint="?attr/colorPrimary"
+        android:visibility="gone" />
+
+</FrameLayout>

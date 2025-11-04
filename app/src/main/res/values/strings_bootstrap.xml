@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bootstrap_title">Restore from backup</string>
+    <string name="bootstrap_instructions">Enter your one-time code to restore your data.</string>
+    <string name="bootstrap_code_hint">Code (e.g., 6J9-3KQ)</string>
+    <string name="bootstrap_paste">Paste</string>
+    <string name="bootstrap_restore">Restore</string>
+    <string name="bootstrap_paste_empty">Clipboard is empty</string>
+    <string name="bootstrap_code_error">Please enter a valid code</string>
+    <string name="bootstrap_restoring">Restoring…</string>
+    <string name="bootstrap_restore_success">Restore complete</string>
+    <string name="bootstrap_restore_failed">Restore failed. Please try again.</string>
+</resources>

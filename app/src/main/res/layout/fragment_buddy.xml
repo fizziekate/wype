@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Using exact design from nominate buddy.png -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.buddy.BuddyFragment">
+
+    <!-- Your exact buddy design as background -->
+    <ImageView
+        android:id="@+id/buddy_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/nominate_buddy_unclicked"
+        android:scaleType="centerCrop" />
+
+    <!-- Text fields positioned over your design -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="32dp">
+
+        <!-- Buddy Name field positioned over the name area in your design -->
+        <TextView
+            android:id="@+id/tv_buddy_name_field"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="300dp"
+            android:layout_marginHorizontal="40dp"
+            android:background="@android:color/transparent"
+            android:text=""
+            android:textSize="32sp"
+            android:textColor="#00BFFF"
+            android:shadowColor="#0080FF"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="8"
+            android:gravity="center"
+            android:padding="12dp"
+            android:ellipsize="end"
+            android:singleLine="true" />
+
+        <!-- Buddy Phone field positioned over the phone area in your design -->
+        <TextView
+            android:id="@+id/tv_buddy_phone_field"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_below="@id/tv_buddy_name_field"
+            android:layout_marginTop="20dp"
+            android:layout_marginHorizontal="40dp"
+            android:background="@android:color/transparent"
+            android:text=""
+            android:textSize="28sp"
+            android:textColor="#00BFFF"
+            android:shadowColor="#0080FF"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="8"
+            android:gravity="center"
+            android:padding="12dp"
+            android:ellipsize="end"
+            android:singleLine="true" />
+
+        <!-- Invisible select contact button positioned 1.5cm higher over telephone/person graphic -->
+        <Button
+            android:id="@+id/btn_select_contact"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="193dp"
+            android:background="@android:color/transparent"
+            android:text=""
+            android:textSize="0sp" />
+
+        <!-- Invisible test SMS button -->
+        <Button
+            android:id="@+id/btn_test_sms"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="80dp"
+            android:layout_marginHorizontal="32dp"
+            android:background="@android:color/transparent"
+            android:text=""
+            android:textSize="0sp" />
+
+
+        <!-- Hidden elements for functionality -->
+        <TextView
+            android:id="@+id/tvBuddyName"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+            
+        <TextView
+            android:id="@+id/tvBuddyStatus"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+            
+        <TextView
+            android:id="@+id/tvCurrentBuddy"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+            
+        <TextView
+            android:id="@+id/tvBuddyPhone"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+            
+        <LinearLayout
+            android:id="@+id/layoutCurrentBuddy"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+
+
+        <Button
+            android:id="@+id/btnRemoveBuddy"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnCallBuddy"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tv_sms_status"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+
+    </RelativeLayout>
+
+</FrameLayout>

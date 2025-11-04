@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF000000"
+    tools:context=".ui.auth.RegisterActivity">
+
+    <!-- Register screen background image -->
+    <ImageView
+        android:id="@+id/register_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/register"
+        android:scaleType="centerCrop"
+        android:alpha="0.7" />
+
+    <!-- Main content container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="300dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:text=""
+            android:textColor="@android:color/transparent"
+            android:textSize="0sp" />
+
+        <!-- Email input field -->
+        <EditText
+            android:id="@+id/et_email"
+            android:layout_width="299dp"
+            android:layout_height="60dp"
+            android:layout_marginBottom="65dp"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:hint=""
+            android:inputType="textEmailAddress"
+            android:padding="16dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="@android:color/transparent"
+            android:textSize="20sp" />
+
+        <!-- Password input field -->
+        <EditText
+            android:id="@+id/et_password"
+            android:layout_width="302dp"
+            android:layout_height="60dp"
+            android:layout_marginBottom="65dp"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:hint=""
+            android:inputType="textPassword"
+            android:padding="16dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="@android:color/transparent"
+            android:textSize="20sp" />
+
+        <!-- Confirm Password input field -->
+        <EditText
+            android:id="@+id/et_confirm_password"
+            android:layout_width="319dp"
+            android:layout_height="60dp"
+            android:layout_marginBottom="30dp"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:hint=""
+            android:inputType="textPassword"
+            android:padding="16dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="@android:color/transparent"
+            android:textSize="20sp" />
+
+        <!-- Register button -->
+        <Button
+            android:id="@+id/btn_register"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginBottom="-60dp"
+            android:alpha="0.01"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:focusable="true"
+            android:text=""
+            android:textColor="@android:color/transparent"
+            android:textSize="0sp" />
+
+        <!-- Back to login button -->
+        <Button
+            android:id="@+id/btn_back_to_login"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="10dp"
+            android:alpha="0.01"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:focusable="true"
+            android:text=""
+            android:textColor="@android:color/transparent"
+            android:textSize="0sp" />
+
+    </LinearLayout>
+
+</RelativeLayout>

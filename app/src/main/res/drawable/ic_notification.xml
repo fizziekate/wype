@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorOnSurface">
+    
+    <!-- Simple W letter for notification -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M6,8L8,8L9,14L10,10L11,10L12,14L14,8L16,8L13,16L11,16L10,12L9,16L7,16Z"/>
+        
+    <!-- Microphone indicator -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M19,9A1,1 0,1 1,17 9A1,1 0,1 1,19 9Z"/>
+        
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M18.5,12A0.5,0.5 0,1 1,17.5 12A0.5,0.5 0,1 1,18.5 12Z"/>
+        
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M18.5,15A0.5,0.5 0,1 1,17.5 15A0.5,0.5 0,1 1,18.5 15Z"/>
+        
+</vector>

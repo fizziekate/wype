@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- WYPE Custom Design Colors -->
+    <color name="wype_primary">#2C3E50</color>
+    <color name="wype_primary_dark">#1A252F</color>
+    <color name="wype_secondary">#E74C3C</color>
+    <color name="wype_secondary_dark">#C0392B</color>
+    <color name="wype_accent">#3498DB</color>
+    
+    <!-- Custom Background Colors -->
+    <color name="wype_background">#34495E</color>
+    <color name="wype_surface">#2C3E50</color>
+    <color name="wype_card_background">#34495E</color>
+    <color name="brushed_metal">#8E9AAF</color>
+    
+    <!-- Text Colors -->
+    <color name="wype_text_primary">#FFFFFF</color>
+    <color name="wype_text_secondary">#BDC3C7</color>
+    <color name="wype_text_accent">#E74C3C</color>
+    
+    <!-- Status Colors -->
+    <color name="status_active">#27AE60</color>
+    <color name="status_inactive">#E74C3C</color>
+    <color name="status_warning">#F39C12</color>
+    <color name="status_recording">#E67E22</color>
+    
+    <!-- Button Colors -->
+    <color name="button_primary">#E74C3C</color>
+    <color name="button_primary_dark">#C0392B</color>
+    <color name="button_secondary">#3498DB</color>
+    <color name="button_secondary_dark">#2980B9</color>
+    
+    <!-- Standard Colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="gray">#7F8C8D</color>
+    <color name="light_gray">#BDC3C7</color>
+    <color name="dark_gray">#2C3E50</color>
+    
+    <!-- Emergency Colors -->
+    <color name="emergency_red">#E74C3C</color>
+    <color name="emergency_orange">#E67E22</color>
+    
+    <!-- Gradient Colors -->
+    <color name="gradient_start">#2C3E50</color>
+    <color name="gradient_end">#34495E</color>
+    
+    <!-- Waveform Colors -->
+    <color name="waveform_active">#3498DB</color>
+    <color name="waveform_inactive">#7F8C8D</color>
+    <color name="waveform_high">#E74C3C</color>
+    <color name="waveform_medium">#F39C12</color>
+    <color name="waveform_low">#27AE60</color>
+</resources>

@@ -1,0 +1,38 @@
+{
+  "project_info": {
+    "project_number": "329693758600",
+    "project_id": "wype-security-12f0e",
+    "storage_bucket": "wype-security-12f0e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:329693758600:android:e58298f0aa350348830b3d",
+        "android_client_info": {
+          "package_name": "com.wype.security"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "329693758600-qcrh4urcau7ajhvd7ho1h41gg1k9f01n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wype.security",
+            "certificate_hash": "5c1afb772517cb0ada74c77712e477087c2db1f6"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCa5YC36N981WvXssrbBXRDVVW43iTUELY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

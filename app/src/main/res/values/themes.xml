@@ -1,0 +1,60 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- WYPE Custom Dark Theme -->
+    <style name="Theme.Wype" parent="Theme.Material3.Dark">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/wype_primary</item>
+        <item name="colorPrimaryVariant">@color/wype_primary_dark</item>
+        <item name="colorOnPrimary">@color/wype_text_primary</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/wype_secondary</item>
+        <item name="colorSecondaryVariant">@color/wype_secondary_dark</item>
+        <item name="colorOnSecondary">@color/wype_text_primary</item>
+        <!-- Surface colors -->
+        <item name="colorSurface">@color/wype_surface</item>
+        <item name="colorOnSurface">@color/wype_text_primary</item>
+        <!-- Background colors -->
+        <item name="android:colorBackground">@color/wype_background</item>
+        <item name="colorOnBackground">@color/wype_text_primary</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/wype_primary_dark</item>
+        <item name="android:navigationBarColor">@color/wype_primary_dark</item>
+        <!-- Window background -->
+        <item name="android:windowBackground">@drawable/brushed_metal_background</item>
+        <!-- Text colors -->
+        <item name="android:textColor">@color/wype_text_primary</item>
+        <item name="android:textColorPrimary">@color/wype_text_primary</item>
+        <item name="android:textColorSecondary">@color/wype_text_secondary</item>
+    </style>
+    
+    <style name="Theme.Wype.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    
+    <!-- Custom Button Styles -->
+    <style name="WypeButton.Primary" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/button_primary</item>
+        <item name="android:textColor">@color/wype_text_primary</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    
+    <style name="WypeButton.Secondary" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeColor">@color/button_secondary</item>
+        <item name="android:textColor">@color/button_secondary</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    
+    <!-- Custom Card Style -->
+    <style name="WypeCard" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardBackgroundColor">@color/wype_card_background</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="android:layout_margin">8dp</item>
+    </style>
+</resources>

@@ -1,0 +1,174 @@
+<resources>
+    <string name="app_name">WYPE</string>
+    
+    <!-- Bottom Navigation Titles -->
+    <string name="title_home">Home</string>
+    <string name="title_instructions">Instructions</string>
+    <string name="title_record">Record/Play</string>
+    <string name="title_buddy">Nominate Buddy</string>
+    <string name="title_backup">Backup to Google</string>
+    
+    <!-- Home Screen -->
+    <string name="home_title">WYPE Security</string>
+    <string name="home_status_listening">Listening for wake phrase...</string>
+    <string name="home_status_not_listening">Not listening</string>
+    <string name="home_service_status">Service Status</string>
+    <string name="home_start_service">Start Protection</string>
+    <string name="home_stop_service">Stop Protection</string>
+    
+    <!-- Instructions Screen -->
+    <string name="instructions_title">How WYPE Works</string>
+    <string name="instructions_step1">1. Set your custom wake phrase</string>
+    <string name="instructions_step2">2. Nominate a buddy contact</string>
+    <string name="instructions_step3">3. Enable device administrator</string>
+    <string name="instructions_step4">4. Say your phrase twice in 10 seconds</string>
+    <string name="instructions_step5">5. SMS sent, phone wiped automatically</string>
+    
+    <!-- Record Screen -->
+    <string name="record_title">Set Wake Phrase</string>
+    <string name="record_instruction">Record your custom wake phrase</string>
+    <string name="record_start">Start Recording</string>
+    <string name="record_stop">Stop Recording</string>
+    <string name="record_play">Play Recording</string>
+    <string name="record_save">Save Phrase</string>
+    <string name="record_current_phrase">Current phrase:</string>
+    <string name="record_recording_quality">Recording Quality:</string>
+    <string name="record_test_phrase">Test Phrase</string>
+    <string name="record_phrase_detected">Wake phrase detected!</string>
+    <string name="record_phrase_not_detected">Wake phrase not detected</string>
+    
+    <!-- Buddy Screen -->
+    <string name="buddy_title">Emergency Contact</string>
+    <string name="buddy_instruction">Choose who gets notified</string>
+    <string name="buddy_select">Select Contact</string>
+    <string name="buddy_current">Current buddy:</string>
+    <string name="buddy_phone_number">Phone Number:</string>
+    <string name="buddy_test_sms">Send Test SMS</string>
+    <string name="buddy_call">Call Buddy</string>
+    <string name="buddy_remove">Remove Buddy</string>
+    <string name="buddy_change_contact">Change Contact</string>
+    
+    <!-- Backup Screen -->
+    <string name="backup_title">Google Backup</string>
+    <string name="backup_instruction">Enable automatic backup before wipe</string>
+    <string name="backup_enable">Enable Backup</string>
+    <string name="backup_account">Google Account:</string>
+    <string name="backup_last_backup">Last backup:</string>
+    <string name="backup_manual">Backup Now</string>
+    
+    <!-- Permissions -->
+    <string name="permission_microphone_title">Microphone Permission</string>
+    <string name="permission_microphone_message">WYPE needs microphone access to listen for your wake phrase</string>
+    <string name="permission_sms_title">SMS Permission</string>
+    <string name="permission_sms_message">WYPE needs SMS permission to alert your buddy</string>
+    <string name="permission_admin_title">Device Administrator</string>
+    <string name="permission_admin_message">WYPE needs admin rights to perform factory reset</string>
+    
+    <!-- Common -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="enable">Enable</string>
+    <string name="disable">Disable</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    
+    <!-- Notifications -->
+    <string name="notification_channel_name">WYPE Protection</string>
+    <string name="notification_channel_description">Background speech monitoring</string>
+    <string name="notification_title">WYPE Protection Active</string>
+    <string name="notification_text">Listening for emergency phrase</string>
+    
+    <!-- Emergency SMS -->
+    <string name="emergency_sms_message">EMERGENCY: WYPE security phrase detected. Device wiping initiated. Location: [coordinates if available]</string>
+    
+    <!-- Biometric Authentication -->
+    <string name="biometric_login_title">Biometric Login</string>
+    <string name="biometric_login_subtitle">Use your fingerprint to access WYPE Security</string>
+    <string name="biometric_login_button">Use Fingerprint</string>
+    <string name="biometric_fallback_button">Use Password Instead</string>
+    <string name="biometric_not_available">Fingerprint login not available</string>
+    <string name="biometric_not_enrolled">Please set up fingerprint in device settings</string>
+    <string name="biometric_error">Fingerprint authentication failed</string>
+    <string name="biometric_success">Fingerprint authentication successful</string>
+    
+    <!-- Porcupine Wake Word Settings -->
+    <string name="title_porcupine">Wake Word</string>
+    <string name="porcupine_settings_title">Wake Word Settings</string>
+    <string name="porcupine_settings_description">Configure Picovoice Porcupine wake word detection for hands-free emergency activation</string>
+    
+    <!-- Access Key -->
+    <string name="porcupine_access_key_title">Access Key</string>
+    <string name="porcupine_access_key_description">Enter your Picovoice Access Key from console.picovoice.ai</string>
+    <string name="porcupine_access_key_hint">Access Key</string>
+    
+    <!-- Wake Word Selection -->
+    <string name="porcupine_wake_word_title">Wake Word</string>
+    <string name="porcupine_wake_word_description">Choose a built-in wake word that will trigger the emergency sequence</string>
+    
+    <!-- Sensitivity -->
+    <string name="porcupine_sensitivity_title">Sensitivity</string>
+    <string name="porcupine_sensitivity_description">Higher sensitivity detects the word more easily but may cause false triggers</string>
+    <string name="sensitivity_low">Low (0.0)</string>
+    <string name="sensitivity_high">High (1.0)</string>
+    
+    <!-- Actions -->
+    <string name="test_wake_word">Test Wake Word</string>
+    <string name="save_settings">Save Settings</string>
+    
+    <!-- Status -->
+    <string name="porcupine_status_title">Status</string>
+    <string name="porcupine_configured">Wake word detection is configured and ready</string>
+    <string name="porcupine_not_configured">Please configure access key and wake word</string>
+    <string name="porcupine_enabled">Wake word detection is active</string>
+    <string name="porcupine_disabled">Wake word detection is disabled</string>
+    
+    <!-- Wake Words -->
+    <string-array name="wake_words">
+        <item>picovoice</item>
+        <item>alexa</item>
+        <item>americano</item>
+        <item>blueberry</item>
+        <item>bumblebee</item>
+        <item>computer</item>
+        <item>grapefruit</item>
+        <item>grasshopper</item>
+        <item>hey google</item>
+        <item>hey siri</item>
+        <item>jarvis</item>
+        <item>ok google</item>
+        <item>porcupine</item>
+        <item>terminator</item>
+    </string-array>
+    
+    <string-array name="wake_words_display">
+        <item>Picovoice</item>
+        <item>Alexa</item>
+        <item>Americano</item>
+        <item>Blueberry</item>
+        <item>Bumblebee</item>
+        <item>Computer</item>
+        <item>Grapefruit</item>
+        <item>Grasshopper</item>
+        <item>Hey Google</item>
+        <item>Hey Siri</item>
+        <item>Jarvis</item>
+        <item>OK Google</item>
+        <item>Porcupine</item>
+        <item>Terminator</item>
+    </string-array>
+    
+    <!-- Accessibility Service -->
+    <string name="accessibility_service_label">WYPE Emergency Protection</string>
+    <string name="accessibility_service_description">Provides enhanced background operation for WYPE emergency detection with better reliability and system-level access for critical safety features.</string>
+    <string name="accessibility_permission_title">Accessibility Permission</string>
+    <string name="accessibility_permission_message">WYPE needs accessibility permission for enhanced background operation and system-level emergency detection.</string>
+    <string name="accessibility_settings_button">Open Accessibility Settings</string>
+    <string name="accessibility_service_enabled">WYPE Accessibility Service is enabled</string>
+    <string name="accessibility_service_disabled">WYPE Accessibility Service is disabled</string>
+    <string name="accessibility_enable_instruction">To enable:
+1. Open Accessibility Settings
+2. Find "WYPE Emergency Protection"
+3. Turn on the service
+4. Confirm in the dialog</string>
+    
+</resources>

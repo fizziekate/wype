@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Using exact design from buddy recording.png and Not recording.png -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.record.RecordFragment">
+
+    <!-- Your exact recording design as background -->
+    <ImageView
+        android:id="@+id/iv_record_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/recording_unclicked"
+        android:scaleType="centerCrop" />
+
+    <!-- Waveform visualization positioned absolutely -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginHorizontal="64dp"
+        android:layout_marginTop="300dp"
+        android:background="@drawable/waveform_background">
+        
+        <com.wype.security.ui.record.WaveformView
+            android:id="@+id/waveformView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp" />
+            
+    </FrameLayout>
+
+    <!-- Main control buttons positioned absolutely from bottom -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="120dp">
+
+        <!-- Play button overlay -->
+        <Button
+            android:id="@+id/btn_play_recording"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginEnd="20dp"
+            android:background="@android:color/transparent"
+            android:foreground="@android:color/transparent"
+            android:text=""
+            android:textColor="#00FFFFFF"
+            android:textSize="0sp"
+            style="?android:attr/borderlessButtonStyle" />
+
+        <!-- Record button positioned over your design's button -->
+        <Button
+            android:id="@+id/btn_start_recording"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:background="@android:color/transparent"
+            android:foreground="@android:color/transparent"
+            android:text=""
+            android:textColor="#00FFFFFF"
+            android:textSize="0sp"
+            style="?android:attr/borderlessButtonStyle" />
+
+        <!-- Stop button overlay -->
+        <Button
+            android:id="@+id/btn_stop_playback"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginStart="20dp"
+            android:background="@android:color/transparent"
+            android:foreground="@android:color/transparent"
+            android:text=""
+            android:textColor="#00FFFFFF"
+            android:textSize="0sp"
+            style="?android:attr/borderlessButtonStyle" />
+
+    </LinearLayout>
+
+    <!-- Hidden stub elements for compatibility (if needed by existing code) -->
+    <TextView
+        android:id="@+id/tv_current_phrase"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tv_recording_instructions"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <EditText
+        android:id="@+id/etPhraseText"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tvCurrentPhrase"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tvRecordingTime"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/btnDeletePhrase"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_save_phrase"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tvRecordingStatus"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+</FrameLayout>

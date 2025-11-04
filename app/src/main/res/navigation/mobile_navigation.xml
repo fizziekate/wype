@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_home">
+
+    <fragment
+        android:id="@+id/navigation_home"
+        android:name="com.wype.security.ui.home.HomeFragment"
+        android:label="@string/title_home"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/navigation_instructions"
+        android:name="com.wype.security.ui.instructions.InstructionsFragment"
+        android:label="@string/title_instructions"
+        tools:layout="@layout/fragment_instructions" />
+
+    <fragment
+        android:id="@+id/navigation_record"
+        android:name="com.wype.security.ui.record.RecordFragment"
+        android:label="@string/title_record"
+        tools:layout="@layout/fragment_record" />
+
+    <fragment
+        android:id="@+id/navigation_buddy"
+        android:name="com.wype.security.ui.buddy.BuddyFragment"
+        android:label="@string/title_buddy"
+        tools:layout="@layout/fragment_buddy" />
+
+    <fragment
+        android:id="@+id/navigation_backup"
+        android:name="com.wype.security.ui.backup.BackupFragment"
+        android:label="@string/title_backup"
+        tools:layout="@layout/fragment_backup" />
+
+    <fragment
+        android:id="@+id/navigation_porcupine"
+        android:name="com.wype.security.ui.porcupine.PorcupineSettingsFragment"
+        android:label="@string/title_porcupine"
+        tools:layout="@layout/fragment_porcupine_settings" />
+
+</navigation>

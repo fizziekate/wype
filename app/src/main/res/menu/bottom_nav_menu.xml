@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_home"
+        android:icon="@drawable/home_icon"
+        android:title="@string/title_home" />
+
+    <item
+        android:id="@+id/navigation_instructions"
+        android:icon="@drawable/instructions_icon"
+        android:title="@string/title_instructions" />
+
+    <item
+        android:id="@+id/navigation_record"
+        android:icon="@drawable/record_icon"
+        android:title="@string/title_record" />
+
+    <item
+        android:id="@+id/navigation_buddy"
+        android:icon="@drawable/buddy_icon"
+        android:title="@string/title_buddy" />
+
+    <item
+        android:id="@+id/navigation_backup"
+        android:icon="@drawable/google_icon"
+        android:title="@string/title_backup" />
+
+    <item
+        android:id="@+id/navigation_porcupine"
+        android:icon="@android:drawable/ic_btn_speak_now"
+        android:title="@string/title_porcupine" />
+
+</menu>
