@@ -20,6 +20,11 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var backupButton: Button
     private lateinit var enableDoButton: Button
     
+    companion object {
+        private const val PREFS_NAME = "wype_prefs"
+        private const val KEY_BACKUP_COMPLETED = "backup_completed"
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -45,8 +50,8 @@ class HomeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         // Check if backup was completed and update image
-        val backupCompleted = getSharedPreferences("wype_prefs", MODE_PRIVATE)
-            .getBoolean("backup_completed", false)
+        val backupCompleted = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+            .getBoolean(KEY_BACKUP_COMPLETED, false)
         if (backupCompleted) {
             backgroundImageView.setImageResource(R.drawable.do_google_backup_clicked)
         }
