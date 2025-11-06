@@ -9,14 +9,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar">
 
-        <!--
-          Note to agent:
-          - Device admin <receiver> will be added in PR-A.
-          - FileProvider and any services/activities for new features
-            will be added in PR-B/PR-C.
-        -->
-
-        <!-- Device admin receiver added by PR-A -->
+        <!-- Device admin receiver for provisioning and device management -->
         <receiver
             android:name=".provisioning.DeviceAdminRcvr"
             android:permission="android.permission.BIND_DEVICE_ADMIN"
@@ -26,6 +19,7 @@
                 android:resource="@xml/device_admin_receiver" />
             <intent-filter>
                 <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+                <action android:name="android.app.action.DEVICE_ADMIN_DISABLED" />
             </intent-filter>
         </receiver>
 

@@ -38,6 +38,6 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.2.0")
     implementation("androidx.activity:activity-ktx:1.9.2")
     implementation("androidx.fragment:fragment-ktx:1.8.3")
-    // ZXing + security-crypto will be added in PR-A/PR-B as per plan.
+    // ZXing for QR code scanning in provisioning flow
     implementation("com.google.zxing:core:3.5.3")
 }
