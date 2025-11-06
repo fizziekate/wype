@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Wype Security</string>
+    <string name="register">Register</string>
+    <string name="email_hint">Email</string>
+    <string name="backup_google_drive">Back up to Google Drive</string>
+    <string name="enable_device_owner">Enable Device Owner (factory reset)</string>
+    <string name="create_backup">Create Backup</string>
+    <string name="backup_instructions">Create a backup file to save your data</string>
+</resources>
