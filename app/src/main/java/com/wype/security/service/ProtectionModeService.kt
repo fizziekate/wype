@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import android.util.Log
 import androidx.annotation.Nullable
 import androidx.core.app.NotificationCompat
@@ -21,7 +22,7 @@ import kotlinx.coroutines.*
  * Runs continuously in the background with silent notifications to provide:
  * - Continuous wake word detection using on-device ML
  * - Double confirmation requirement for emergency triggering
- * - SMS and factory reset emergency actions
+ * - SMS, Backup, and Factory Reset emergency actions
  * - Silent operation with invisible notifications
  * - Automatic protection mode activation after phrase recording
  */
@@ -36,10 +37,10 @@ class ProtectionModeService : Service(), CoroutineScope {
         
         // Notification Configuration
         private const val NOTIFICATION_ID = 3001
-        private const val CHANNEL_ID = "wype_bg_service" // Use same channel as SilentSpeechService
+        private const val CHANNEL_ID = "wype_bg_service" 
         
         // Protection Parameters
-        private const val CONFIRMATION_TIMEOUT_MS = 30000L // 30 seconds
+        private const val CONFIRMATION_TIMEOUT_MS = 10000L // 10 seconds (Double-trigger window)
         private const val DEBOUNCE_TIME_MS = 2000L // 2 seconds between detections
         private const val DAILY_EMERGENCY_LIMIT = 3
     }
@@ -52,6 +53,7 @@ class ProtectionModeService : Service(), CoroutineScope {
     private lateinit var preferencesManager: PreferencesManager
     private var hybridWakeWordManager: HybridWakeWordManager? = null
     private var notificationManager: NotificationManager? = null
+    private var wakeLock: PowerManager.WakeLock? = null
     
     // Protection state
     private var isProtectionActive = false
@@ -72,9 +74,6 @@ class ProtectionModeService : Service(), CoroutineScope {
             // Initialize components
             preferencesManager = PreferencesManager(this)
             notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            
-            // Use existing silent notification channel from WypeApp
-            // Channel 'wype_fg_silent' is already created in WypeApp.onCreate()
             
             Log.i(TAG, "Protection Mode Service initialized")
             
@@ -134,8 +133,9 @@ class ProtectionModeService : Service(), CoroutineScope {
                 // Initialize wake word detection
                 if (initializeWakeWordDetection()) {
                     isProtectionActive = true
+                    acquireWakeLock()
                     Log.w(TAG, "PROTECTION MODE ACTIVE - Listening silently for emergency phrase")
-                    
+                    ServiceWatchdog.startWatchdog(this)
                     // Log loaded state for debugging
                     val stateStatus = preferencesManager.getConfirmationStateStatus()
                     if (stateStatus["count"] as Int > 0) {
@@ -172,8 +172,9 @@ class ProtectionModeService : Service(), CoroutineScope {
             
             // Reset state
             isProtectionActive = false
+            releaseWakeLock()
             resetWakeWordConfirmation()
-            
+            ServiceWatchdog.stopWatchdog(this)
             Log.i(TAG, "Protection mode stopped")
             
         } catch (e: Exception) {
@@ -291,7 +292,7 @@ class ProtectionModeService : Service(), CoroutineScope {
                 firstWakeWordTime = currentTime
                 wakeWordConfirmationCount = 1
                 
-                Log.w(TAG, "PROTECTION FIRST DETECTION: '$wakeWord' - Say again within 30s for emergency")
+                Log.w(TAG, "PROTECTION FIRST DETECTION: '$wakeWord' - Say again within 10s for emergency")
                 
                 // Save confirmation state for crash resilience
                 saveConfirmationStateToPreferences(wakeWord, detectorType)
@@ -311,19 +312,19 @@ class ProtectionModeService : Service(), CoroutineScope {
             1 -> {
                 // Second detection - check if within time window
                 if (currentTime - firstWakeWordTime <= CONFIRMATION_TIMEOUT_MS) {
-                    Log.w(TAG, "PROTECTION EMERGENCY CONFIRMED: '$wakeWord' detected twice - TRIGGERING ALL EMERGENCY ACTIONS")
+                    Log.w(TAG, "PROTECTION EMERGENCY CONFIRMED: '$wakeWord' detected twice within 10s - TRIGGERING EMERGENCY ACTIONS")
                     
                     // Log double confirmation
                     val timeBetween = (currentTime - firstWakeWordTime) / 1000.0
                     preferencesManager.logPhraseDetection(
-                        "PROTECTION EMERGENCY: $wakeWord ($detectorType) - Confirmed in ${timeBetween}s - SMS+FACTORY_RESET", 
+                        "PROTECTION EMERGENCY: $wakeWord ($detectorType) - Confirmed in ${timeBetween}s - SMS+BACKUP+FACTORY_RESET", 
                         currentTime
                     )
                     
                     // Reset confirmation state
                     resetWakeWordConfirmation()
                     
-                    // Trigger emergency actions: SMS + Factory Reset
+                    // Trigger emergency actions: SMS + Backup + Factory Reset
                     triggerEmergencyActions()
                 } else {
                     Log.i(TAG, "Protection second wake word too late - treating as new first detection")
@@ -368,12 +369,12 @@ class ProtectionModeService : Service(), CoroutineScope {
     }
     
     /**
-     * Trigger emergency actions: SMS + Factory Reset
+     * Trigger emergency actions
      */
     private fun triggerEmergencyActions() {
         launch {
             try {
-                Log.w(TAG, "PROTECTION EMERGENCY TRIGGERED - Checking conditions and executing SMS + Factory Reset")
+                Log.w(TAG, "PROTECTION EMERGENCY TRIGGERED - Checking conditions and executing sequence")
                 
                 // Validate emergency conditions
                 if (!validateEmergencyConditions()) {
@@ -386,14 +387,14 @@ class ProtectionModeService : Service(), CoroutineScope {
                 
                 // Log emergency event
                 val timestamp = System.currentTimeMillis()
-                val emergencyLog = "PROTECTION EMERGENCY #$emergencyCount - SMS+Factory Reset triggered"
+                val emergencyLog = "PROTECTION EMERGENCY #$emergencyCount - Sequence: SMS -> Backup -> Factory Reset"
                 preferencesManager.logPhraseDetection(emergencyLog, timestamp)
                 
                 // Get ProtectionModeManager and trigger emergency actions
                 val protectionManager = ProtectionModeManager.getInstance(this@ProtectionModeService)
                 protectionManager.triggerEmergencyActions()
                 
-                Log.w(TAG, "Protection emergency actions initiated - SMS and Factory Reset in progress")
+                Log.w(TAG, "Protection emergency sequence initiated")
                 
             } catch (e: Exception) {
                 Log.e(TAG, "Error during protection emergency actions", e)
@@ -420,13 +421,7 @@ class ProtectionModeService : Service(), CoroutineScope {
                 return false
             }
             
-            // Check emergency contact configuration
-            val emergencyContact = preferencesManager.getBuddyPhone()
-            if (emergencyContact.isNullOrEmpty()) {
-                Log.w(TAG, "No emergency contact configured - proceeding anyway")
-            }
-            
-            Log.i(TAG, "Emergency conditions validated - emergency actions authorized")
+            Log.i(TAG, "Emergency conditions validated")
             return true
             
         } catch (e: Exception) {
@@ -435,15 +430,15 @@ class ProtectionModeService : Service(), CoroutineScope {
         }
     }
     
-    
     /**
      * Create completely invisible/silent notification
      */
     private fun createSilentNotification(): Notification {
-        return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("") // Empty
-            .setContentText("") // Empty
-            .setSmallIcon(android.R.drawable.ic_media_play) // Minimal system icon
+        val channelId = com.wype.security.WypeApp.WYPE_PROTECTION_CHANNEL_ID
+        return NotificationCompat.Builder(this, channelId)
+            .setContentTitle("") 
+            .setContentText("") 
+            .setSmallIcon(android.R.drawable.ic_media_play) 
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
@@ -455,6 +450,43 @@ class ProtectionModeService : Service(), CoroutineScope {
             .setAutoCancel(false)
             .setLocalOnly(true)
             .build()
+    }
+    
+    /**
+     * Acquire partial wake lock so detection can run when screen is off/locked.
+     */
+    private fun acquireWakeLock() {
+        try {
+            releaseWakeLock()
+            val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+            wakeLock = powerManager.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK,
+                "WypeApp:ProtectionModeService"
+            ).apply {
+                setReferenceCounted(false)
+                acquire()
+            }
+            Log.d(TAG, "WakeLock acquired for background listening")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to acquire WakeLock", e)
+        }
+    }
+    
+    /**
+     * Release wake lock when protection stops.
+     */
+    private fun releaseWakeLock() {
+        try {
+            wakeLock?.let {
+                if (it.isHeld) {
+                    it.release()
+                    Log.d(TAG, "WakeLock released")
+                }
+                wakeLock = null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error releasing WakeLock", e)
+        }
     }
     
     /**
@@ -474,9 +506,6 @@ class ProtectionModeService : Service(), CoroutineScope {
     // CONFIRMATION STATE PERSISTENCE HELPERS
     // ========================================
     
-    /**
-     * Save confirmation state to persistent storage for crash resilience
-     */
     private fun saveConfirmationStateToPreferences(keyword: String, detectorType: String) {
         try {
             preferencesManager.saveConfirmationState(
@@ -486,59 +515,41 @@ class ProtectionModeService : Service(), CoroutineScope {
                 keyword = keyword,
                 detectorType = detectorType
             )
-            
-            Log.v(TAG, "Confirmation state saved: count=$wakeWordConfirmationCount, keyword='$keyword'")
-            
         } catch (e: Exception) {
             Log.e(TAG, "Error saving confirmation state", e)
         }
     }
     
-    /**
-     * Load confirmation state from persistent storage after service restart/crash
-     */
     private fun loadConfirmationStateFromPreferences() {
         try {
             val savedState = preferencesManager.loadConfirmationState()
             
-            // Only restore state if it's valid and within timeout window
             if (savedState.count > 0 && preferencesManager.isConfirmationStateValid(CONFIRMATION_TIMEOUT_MS)) {
                 wakeWordConfirmationCount = savedState.count
                 firstWakeWordTime = savedState.firstTime
                 lastWakeWordDetectionTime = savedState.lastTime
                 
-                Log.w(TAG, "Restored confirmation state after restart: count=${savedState.count}, " +
-                          "keyword='${savedState.keyword}', detector='${savedState.detectorType}'")
-                
-                // Schedule timeout if we're in the middle of confirmation
                 if (wakeWordConfirmationCount == 1) {
                     val timeRemaining = CONFIRMATION_TIMEOUT_MS - (System.currentTimeMillis() - firstWakeWordTime)
                     if (timeRemaining > 0) {
-                        Log.i(TAG, "Scheduling remaining confirmation timeout: ${timeRemaining}ms")
                         launch {
                             delay(timeRemaining)
                             resetConfirmationRunnable.run()
                         }
                     } else {
-                        Log.i(TAG, "Confirmation timeout already expired - resetting")
                         resetWakeWordConfirmation()
                     }
                 }
             } else {
-                // Clear invalid or expired state
                 if (savedState.count > 0) {
-                    Log.i(TAG, "Clearing expired confirmation state")
                     preferencesManager.clearConfirmationState()
                 }
-                
-                // Ensure clean state
                 wakeWordConfirmationCount = 0
                 firstWakeWordTime = 0L
                 lastWakeWordDetectionTime = 0L
             }
-            
         } catch (e: Exception) {
-            Log.e(TAG, "Error loading confirmation state - starting with clean state", e)
+            Log.e(TAG, "Error loading confirmation state", e)
             wakeWordConfirmationCount = 0
             firstWakeWordTime = 0L
             lastWakeWordDetectionTime = 0L

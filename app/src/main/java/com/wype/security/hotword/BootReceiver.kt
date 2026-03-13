@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.wype.security.service.ProtectionModeService
+import com.wype.security.utils.PreferencesManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -12,8 +14,8 @@ import kotlinx.coroutines.launch
 /**
  * Boot persistence receiver for the Wype protection system
  * 
- * Silently restarts the hotword service if protection mode was armed before reboot.
- * Provides clean, null-safe boot handling with no UI popups or user notifications.
+ * Starts ProtectionModeService after boot when protection mode is enabled and a wake phrase
+ * is set, so emergency phrase detection runs even when the app is not open.
  * 
  * Responds to:
  * - ACTION_BOOT_COMPLETED: Standard boot completion
@@ -69,12 +71,14 @@ class BootReceiver : BroadcastReceiver() {
     private fun handleBootCompleted(context: Context) {
         receiverScope.launch {
             try {
-                val wasArmed = ProtectionMode.isArmedSuspend(context)
-                Log.d(TAG, "Protection mode state before reboot: $wasArmed")
+                val appContext = context.applicationContext
+                val prefs = PreferencesManager(appContext)
+                val shouldStart = prefs.isProtectionModeEnabled() && prefs.hasWakePhrase()
+                Log.d(TAG, "Protection mode state before reboot: enabled=$shouldStart")
                 
-                if (wasArmed) {
-                    Log.i(TAG, "Protection was armed before reboot - restarting hotword service")
-                    startHotwordServiceSilently(context)
+                if (shouldStart) {
+                    Log.i(TAG, "Protection was armed before reboot - starting ProtectionModeService")
+                    startProtectionModeServiceSilently(appContext)
                 } else {
                     Log.d(TAG, "Protection was not armed before reboot - no action needed")
                 }
@@ -96,15 +100,13 @@ class BootReceiver : BroadcastReceiver() {
             try {
                 // Use application context to avoid issues during early boot
                 val appContext = context.applicationContext
+                val prefs = PreferencesManager(appContext)
+                val shouldStart = prefs.isProtectionModeEnabled() && prefs.hasWakePhrase()
+                Log.d(TAG, "Protection mode state at locked boot: enabled=$shouldStart")
                 
-                val wasArmed = ProtectionMode.isArmedSuspend(appContext)
-                Log.d(TAG, "Protection mode state at locked boot: $wasArmed")
-                
-                if (wasArmed) {
-                    Log.i(TAG, "Protection was armed - scheduling service start for after unlock")
-                    // For locked boot, we still try to start the service
-                    // The service itself will handle any encryption/unlock requirements
-                    startHotwordServiceSilently(appContext)
+                if (shouldStart) {
+                    Log.i(TAG, "Protection was armed - starting ProtectionModeService (may run after unlock)")
+                    startProtectionModeServiceSilently(appContext)
                 } else {
                     Log.d(TAG, "Protection was not armed - no service start needed")
                 }
@@ -117,22 +119,17 @@ class BootReceiver : BroadcastReceiver() {
     }
     
     /**
-     * Silently start the hotword service with no user notifications
-     * Uses the same service start method as manual activation
+     * Silently start ProtectionModeService so emergency phrase detection runs
+     * even when the app is not open. Uses same action as manual activation.
      */
-    private fun startHotwordServiceSilently(context: Context) {
+    private fun startProtectionModeServiceSilently(context: Context) {
         try {
-            val serviceIntent = Intent(context, WypeHotwordService::class.java).apply {
-                action = WypeHotwordService.ACTION_START_HOTWORD_DETECTION
-                // Add flag to indicate this is a boot restart
+            val serviceIntent = Intent(context, ProtectionModeService::class.java).apply {
+                action = ProtectionModeService.ACTION_START_PROTECTION
                 putExtra("boot_restart", true)
             }
-            
-            // Start as foreground service (required for background service start)
             context.startForegroundService(serviceIntent)
-            
-            Log.i(TAG, "✅ Hotword service start requested after boot (silent)")
-            
+            Log.i(TAG, "✅ ProtectionModeService start requested after boot (silent)")
         } catch (e: SecurityException) {
             Log.e(TAG, "Security exception starting service after boot", e)
         } catch (e: IllegalStateException) {
@@ -178,15 +175,15 @@ class BootReceiver : BroadcastReceiver() {
  *    - LOCKED_BOOT_COMPLETED: Early boot before user unlock
  *    - Both use same logic but locked boot is more cautious
  * 
- * 4. DataStore Integration:
- *    - Uses ProtectionMode.isArmedSuspend() for async DataStore access
+ * 4. Preferences:
+ *    - Uses PreferencesManager (isProtectionModeEnabled + hasWakePhrase) for consistency
  *    - Proper coroutine scope for receiver context
  *    - Exception handling prevents boot process interference
  * 
  * 5. Service Starting:
  *    - Uses startForegroundService() as required for background starts
- *    - Includes boot_restart flag for service to handle differently if needed
- *    - Same ACTION_START_HOTWORD_DETECTION as manual starts
+ *    - Includes boot_restart extra for service to handle differently if needed
+ *    - Same ACTION_START_PROTECTION as manual activation
  * 
  * 6. Error Handling:
  *    - Try-catch around all major operations
@@ -195,10 +192,10 @@ class BootReceiver : BroadcastReceiver() {
  * 
  * Expected behavior:
  * 1. Device reboots
- * 2. BootReceiver.onReceive() called with BOOT_COMPLETED
- * 3. Receiver checks ProtectionMode.isArmedSuspend()
- * 4. If true: starts WypeHotwordService silently
+ * 2. BootReceiver.onReceive() called with BOOT_COMPLETED or LOCKED_BOOT_COMPLETED
+ * 3. Receiver checks PreferencesManager (protection enabled + wake phrase set)
+ * 4. If true: starts ProtectionModeService silently
  * 5. If false: does nothing
- * 6. Service starts with KWS engine, ready for emergency phrases
+ * 6. ProtectionModeService runs with wake-word detection, ready for emergency phrase
  * 7. No user notification or UI - completely silent restart
  */

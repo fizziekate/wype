@@ -11,8 +11,9 @@ import android.util.Log
 import com.wype.security.utils.PreferencesManager
 
 /**
- * Watchdog service to ensure SpeechListenerService stays running
- * Uses AlarmManager for reliable periodic checks
+ * Watchdog to keep emergency phrase detection running.
+ * When protection mode is enabled, ensures ProtectionModeService is running.
+ * Uses AlarmManager for reliable periodic checks (including in Doze).
  */
 class ServiceWatchdog : BroadcastReceiver() {
 
@@ -87,60 +88,73 @@ class ServiceWatchdog : BroadcastReceiver() {
         
         Log.v(TAG, "Watchdog check triggered")
         
-        val preferencesManager = PreferencesManager(context)
+        val appContext = context.applicationContext
+        val preferencesManager = PreferencesManager(appContext)
         
-        // Only check if service should be running
-        if (!preferencesManager.isServiceEnabled() || !preferencesManager.hasWakePhrase()) {
-            Log.d(TAG, "Service not configured - stopping watchdog")
-            stopWatchdog(context)
+        // Primary path: protection mode enabled → ensure ProtectionModeService is running
+        if (preferencesManager.isProtectionModeEnabled() && preferencesManager.hasWakePhrase()) {
+            if (!isProtectionModeServiceRunning(appContext)) {
+                Log.w(TAG, "ProtectionModeService is not running - attempting to restart")
+                restartProtectionModeService(appContext)
+            } else {
+                Log.v(TAG, "ProtectionModeService is running normally")
+            }
+            startWatchdog(appContext)
             return
         }
         
-        // Check if SpeechListenerService is running
-        if (!isServiceRunning(context)) {
-            Log.w(TAG, "SpeechListenerService is not running - attempting to restart")
-            restartService(context)
-        } else {
-            Log.v(TAG, "SpeechListenerService is running normally")
+        // Legacy path: service enabled (no protection mode) → SpeechListenerService
+        if (preferencesManager.isServiceEnabled() && preferencesManager.hasWakePhrase()) {
+            if (!isSpeechListenerServiceRunning(appContext)) {
+                Log.w(TAG, "SpeechListenerService is not running - attempting to restart")
+                restartSpeechListenerService(appContext)
+            } else {
+                Log.v(TAG, "SpeechListenerService is running normally")
+            }
+            startWatchdog(appContext)
+            return
         }
         
-        // Schedule next check
-        startWatchdog(context)
+        Log.d(TAG, "No protection or legacy service configured - stopping watchdog")
+        stopWatchdog(appContext)
     }
     
-    /**
-     * Check if the SpeechListenerService is currently running
-     */
-    private fun isServiceRunning(context: Context): Boolean {
+    private fun isProtectionModeServiceRunning(context: Context): Boolean {
         val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
-        
         @Suppress("DEPRECATION")
         val services = activityManager.getRunningServices(Integer.MAX_VALUE)
-        
-        for (service in services) {
-            if (SpeechListenerService::class.java.name == service.service.className) {
-                return true
-            }
-        }
-        
-        return false
+        return services.any { it.service.className == ProtectionModeService::class.java.name }
     }
     
-    /**
-     * Attempt to restart the SpeechListenerService
-     */
-    private fun restartService(context: Context) {
+    private fun isSpeechListenerServiceRunning(context: Context): Boolean {
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+        @Suppress("DEPRECATION")
+        val services = activityManager.getRunningServices(Integer.MAX_VALUE)
+        return services.any { it.service.className == SpeechListenerService::class.java.name }
+    }
+    
+    private fun restartProtectionModeService(context: Context) {
+        try {
+            val serviceIntent = Intent(context, ProtectionModeService::class.java).apply {
+                action = ProtectionModeService.ACTION_START_PROTECTION
+            }
+            context.startForegroundService(serviceIntent)
+            Log.i(TAG, "ProtectionModeService restart initiated")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to restart ProtectionModeService", e)
+        }
+    }
+    
+    private fun restartSpeechListenerService(context: Context) {
         try {
             val serviceIntent = Intent(context, SpeechListenerService::class.java).apply {
                 action = SpeechListenerService.ACTION_START_LISTENING
             }
-            
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(serviceIntent)
             } else {
                 context.startService(serviceIntent)
             }
-            
             Log.i(TAG, "SpeechListenerService restart initiated")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to restart SpeechListenerService", e)
