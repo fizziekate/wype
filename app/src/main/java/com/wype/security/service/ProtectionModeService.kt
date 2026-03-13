@@ -135,7 +135,7 @@ class ProtectionModeService : Service(), CoroutineScope {
                     isProtectionActive = true
                     acquireWakeLock()
                     Log.w(TAG, "PROTECTION MODE ACTIVE - Listening silently for emergency phrase")
-                    ServiceWatchdog.startWatchdog(this)
+                    ServiceWatchdog.startWatchdog(this@ProtectionModeService)
                     // Log loaded state for debugging
                     val stateStatus = preferencesManager.getConfirmationStateStatus()
                     if (stateStatus["count"] as Int > 0) {
