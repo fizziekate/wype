@@ -148,6 +148,12 @@ dependencies {
     implementation("androidx.credentials:credentials-play-services-auth:1.2.2")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
+    // ZXing for QR scanning
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0") {
+        isTransitive = false
+    }
+    implementation("com.google.zxing:core:3.5.3")
+
     // Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-core:5.8.0")

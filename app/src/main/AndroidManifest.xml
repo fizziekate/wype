@@ -36,6 +36,9 @@
     <!-- Notification permissions for Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     
+    <!-- Camera permission for QR scanning -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    
     <!-- Biometric Authentication Permissions -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
@@ -236,6 +239,28 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
         </service>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+        <!-- Addon Activities -->
+        <activity
+            android:name=".ui.auth.RegistrationActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Wype.NoActionBar" />
+        <activity
+            android:name=".ui.home.HomeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Wype.NoActionBar" />
+        <activity
+            android:name=".ui.backup.GoogleBackupActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Wype.NoActionBar" />
 
     </application>
 

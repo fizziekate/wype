@@ -13,7 +13,7 @@ import kotlinx.coroutines.*
  * - Entering/exiting protection mode
  * - Coordinating foreground service lifecycle
  * - Managing wake word detection
- * - Triggering emergency actions (SMS + Factory Reset)
+ * - Triggering emergency actions (SMS + Backup + Factory Reset)
  * - Silent operation with invisible notifications
  */
 class ProtectionModeManager private constructor(private val context: Context) {
@@ -131,24 +131,27 @@ class ProtectionModeManager private constructor(private val context: Context) {
     }
     
     /**
-     * Trigger emergency actions: SMS + Factory Reset
+     * Trigger emergency actions: SMS + Backup + Factory Reset
      */
     fun triggerEmergencyActions(allowWithoutProtectionMode: Boolean = false) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                Log.w(TAG, "EMERGENCY ACTIONS TRIGGERED - Executing SMS + Factory Reset (override=$allowWithoutProtectionMode)")
+                Log.w(TAG, "EMERGENCY ACTIONS TRIGGERED - Executing SMS + Backup + Factory Reset (override=$allowWithoutProtectionMode)")
                 
                 // 1. Send Emergency SMS first (faster)
                 sendEmergencySMS()
                 
-                // 2. Brief delay to ensure SMS is sent
+                // 2. Brief delay to ensure SMS is initiated
                 delay(2000)
                 
-                // 3. Trigger Factory Reset
-                triggerFactoryReset(allowWithoutProtectionMode)
+                // 3. Trigger Backup (which will then lead to Factory Reset)
+                // If backup is disabled or fails, GoogleBackupService will proceed to Factory Reset
+                startEmergencyBackup(allowWithoutProtectionMode)
                 
             } catch (e: Exception) {
                 Log.e(TAG, "Error during emergency actions", e)
+                // Fallback: directly trigger factory reset if orchestration fails
+                triggerFactoryReset(allowWithoutProtectionMode)
             }
         }
     }
@@ -174,12 +177,33 @@ class ProtectionModeManager private constructor(private val context: Context) {
             
         } catch (e: Exception) {
             Log.e(TAG, "❌ CRITICAL: Error starting emergency SMS service", e)
-            // Don't let SMS failure stop factory reset
+            // Don't let SMS failure stop the rest of the sequence
+        }
+    }
+
+    /**
+     * Start emergency backup service
+     */
+    private fun startEmergencyBackup(allowWithoutProtectionMode: Boolean = false) {
+        try {
+            Log.w(TAG, "☁️ EMERGENCY BACKUP - Starting backup process before wipe...")
+            
+            val backupIntent = Intent(context, GoogleBackupService::class.java).apply {
+                action = GoogleBackupService.ACTION_START_EMERGENCY_BACKUP
+                putExtra("allow_without_protection_mode", allowWithoutProtectionMode)
+            }
+            
+            context.startForegroundService(backupIntent)
+            Log.w(TAG, "✅ Emergency backup service started")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ CRITICAL: Error starting backup service, falling back to direct reset", e)
+            triggerFactoryReset(allowWithoutProtectionMode)
         }
     }
     
     /**
-     * Trigger factory reset using foreground service
+     * Trigger factory reset using foreground service (Direct fallback)
      */
     private fun triggerFactoryReset(allowWithoutProtectionMode: Boolean = false) {
         try {
