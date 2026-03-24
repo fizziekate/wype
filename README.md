@@ -77,4 +77,5 @@ WypeFactoryReset_REGISTER_FIRST/
 
 ## License
 
-Add your license here (for example: MIT, Apache-2.0, or proprietary internal use).
+This project is licensed under the **MIT License**.
+See the [LICENSE](LICENSE) file for details.
