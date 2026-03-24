@@ -17,7 +17,7 @@ class RegisterFirstServiceTest {
         assertEquals("REGISTERED", result.status());
         assertEquals("Felicity", result.userName());
         assertEquals("PIXEL-8-PRO", result.deviceId());
-        assertTrue(result.registrationId().startsWith("felicity-pixel-8-pro-"));
+        assertEquals("felicity-PIXEL-8-PRO", result.registrationId());
     }
 
     @Test
