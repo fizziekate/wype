@@ -12,7 +12,9 @@ It is intended to be the starting point for a "register first" factory-reset flo
 
 - Gradle wrapper is configured.
 - Root project name is set to `Wype`.
-- No application modules or source sets are committed yet.
+- Java source and test structure is in place under `src/main` and `src/test`.
+- A runnable register-first entry point is available.
+- CI is configured to run build and test checks.
 
 ## Prerequisites
 
@@ -44,10 +46,42 @@ Then run:
 ./gradlew test
 ```
 
+## Run the Register-First Demo
+
+Use the custom Gradle task:
+
+- Windows:
+  ```powershell
+  .\gradlew.bat registerFirstDemo
+  ```
+- macOS/Linux:
+  ```bash
+  ./gradlew registerFirstDemo
+  ```
+
+You can also run with custom arguments:
+
+- Windows:
+  ```powershell
+  .\gradlew.bat run --args="--user=Felicity --device=PIXEL-8-PRO"
+  ```
+- macOS/Linux:
+  ```bash
+  ./gradlew run --args="--user=Felicity --device=PIXEL-8-PRO"
+  ```
+
 ## Project Structure
 
 ```text
 WypeFactoryReset_REGISTER_FIRST/
+├─ .github/
+│  └─ workflows/
+│     └─ ci.yml
+├─ src/
+│  ├─ main/
+│  │  └─ java/com/wype/registerfirst/
+│  └─ test/
+│     └─ java/com/wype/registerfirst/
 ├─ build.gradle.kts
 ├─ settings.gradle.kts
 ├─ gradle.properties
@@ -55,15 +89,16 @@ WypeFactoryReset_REGISTER_FIRST/
 │  └─ wrapper/
 ├─ gradlew
 ├─ gradlew.bat
+├─ LICENSE
 └─ README.md
 ```
 
-## Recommended Next Steps
+## Implemented in this repository
 
-1. Add source code under standard Gradle directories (for example, `src/main` and `src/test`).
-2. Add required dependencies to `build.gradle.kts`.
-3. Define your "register first" flow as runnable tasks or an application entry point.
-4. Add CI checks (build + test) once core logic is in place.
+1. Source code added under standard Gradle directories (`src/main` and `src/test`).
+2. Required dependencies added to `build.gradle.kts` (JUnit 5 for testing).
+3. "Register first" flow implemented as an application entry point and a `registerFirstDemo` Gradle task.
+4. CI checks added via GitHub Actions (`.github/workflows/ci.yml`) to run build + test.
 
 ## Troubleshooting
 
