@@ -5,21 +5,20 @@ README for local project path:
 
 ## Overview
 
-This project is a Gradle-based scaffold for the **WypeFactoryReset_REGISTER_FIRST** workflow.
-It is intended to be the starting point for a "register first" factory-reset flow and can be extended with your application modules, source code, and deployment logic.
+This is now an **Android app project** for a "register first" flow that is suitable as a base for Google Play distribution.
 
-## Current Status
-
-- Gradle wrapper is configured.
-- Root project name is set to `Wype`.
-- Java source and test structure is in place under `src/main` and `src/test`.
-- A runnable register-first entry point is available.
-- CI is configured to run build and test checks.
+The app currently includes:
+- a working Android `app` module
+- a register-first UI (`MainActivity`) where a user enters a name and device ID
+- validation + normalization logic in `RegisterFirstService`
+- unit tests for core registration logic
+- CI build/test checks in GitHub Actions
 
 ## Prerequisites
 
-- Windows 10/11 (or macOS/Linux)
-- Java Development Kit (JDK) 17+ installed
+- Android Studio (latest stable)
+- Android SDK installed (API 35 and build-tools via Android Studio)
+- JDK 17+ (JDK 21 also works in this repo)
 - Git (optional, for version control)
 
 ## Quick Start (Windows)
@@ -34,40 +33,51 @@ Then run:
 
 ```powershell
 .\gradlew.bat tasks
-.\gradlew.bat build
-.\gradlew.bat test
+.\gradlew.bat :app:assembleDebug
+.\gradlew.bat :app:testDebugUnitTest
 ```
 
 ## Quick Start (macOS/Linux)
 
 ```bash
 ./gradlew tasks
-./gradlew build
-./gradlew test
+./gradlew :app:assembleDebug
+./gradlew :app:testDebugUnitTest
 ```
 
-## Run the Register-First Demo
+## Run on a Device/Emulator
 
-Use the custom Gradle task:
+From Android Studio:
+1. Open this project folder.
+2. Let Gradle sync.
+3. Select an emulator or connected Android device.
+4. Run the `app` configuration.
 
-- Windows:
-  ```powershell
-  .\gradlew.bat registerFirstDemo
-  ```
-- macOS/Linux:
-  ```bash
-  ./gradlew registerFirstDemo
-  ```
-
-You can also run with custom arguments:
+Or from command line:
 
 - Windows:
   ```powershell
-  .\gradlew.bat run --args="--user=Felicity --device=PIXEL-8-PRO"
+  .\gradlew.bat :app:installDebug
   ```
 - macOS/Linux:
   ```bash
-  ./gradlew run --args="--user=Felicity --device=PIXEL-8-PRO"
+  ./gradlew :app:installDebug
+  ```
+
+## Build Artifacts
+
+- Debug APK:
+  - `app/build/outputs/apk/debug/app-debug.apk`
+
+For Play Store release, you will typically generate a signed AAB:
+
+- Windows:
+  ```powershell
+  .\gradlew.bat :app:bundleRelease
+  ```
+- macOS/Linux:
+  ```bash
+  ./gradlew :app:bundleRelease
   ```
 
 ## Project Structure
@@ -77,11 +87,16 @@ WypeFactoryReset_REGISTER_FIRST/
 ├─ .github/
 │  └─ workflows/
 │     └─ ci.yml
-├─ src/
-│  ├─ main/
-│  │  └─ java/com/wype/registerfirst/
-│  └─ test/
-│     └─ java/com/wype/registerfirst/
+├─ app/
+│  ├─ src/
+│  │  ├─ main/
+│  │  │  ├─ java/com/wype/registerfirst/
+│  │  │  ├─ res/
+│  │  │  └─ AndroidManifest.xml
+│  │  └─ test/
+│  │     └─ java/com/wype/registerfirst/
+│  ├─ build.gradle.kts
+│  └─ proguard-rules.pro
 ├─ build.gradle.kts
 ├─ settings.gradle.kts
 ├─ gradle.properties
@@ -93,22 +108,22 @@ WypeFactoryReset_REGISTER_FIRST/
 └─ README.md
 ```
 
-## Implemented in this repository
+## CI
 
-1. Source code added under standard Gradle directories (`src/main` and `src/test`).
-2. Required dependencies added to `build.gradle.kts` (JUnit 5 for testing).
-3. "Register first" flow implemented as an application entry point and a `registerFirstDemo` Gradle task.
-4. CI checks added via GitHub Actions (`.github/workflows/ci.yml`) to run build + test.
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs:
+- `:app:assembleDebug`
+- `:app:testDebugUnitTest`
 
-## Troubleshooting
+on pushes and pull requests.
 
-- If Gradle fails because Java is missing, verify:
+## Next Play Store Steps
 
-  ```powershell
-  java -version
-  ```
-
-- If wrapper files are blocked on Windows, run PowerShell as Administrator and retry.
+Before publishing to Google Play, you should still:
+1. Set your final `applicationId` and app branding.
+2. Add a signed release configuration (keystore).
+3. Enable Play App Signing in Play Console.
+4. Prepare store listing assets and privacy policy.
+5. Run device testing and optionally add instrumentation tests.
 
 ## License
 

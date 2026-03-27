@@ -1,4 +1,4 @@
-name: CI
+name: Android CI
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   pull_request:
 
 jobs:
-  build-and-test:
+  unit-test-and-build:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -24,5 +24,8 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
-      - name: Build and test
-        run: ./gradlew --no-daemon clean build
+      - name: Run unit tests
+        run: ./gradlew --no-daemon :app:testDebugUnitTest
+
+      - name: Build debug APK
+        run: ./gradlew --no-daemon :app:assembleDebug
