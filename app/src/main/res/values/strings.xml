@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Wype Register First</string>
+    <string name="app_title">Register First</string>
+    <string name="hint_user_name">User name</string>
+    <string name="hint_device_id">Device ID</string>
+    <string name="register_button">Register Device</string>
+    <string name="status_value">Status: %1$s</string>
+    <string name="message_value">Message: %1$s</string>
+    <string name="registration_id_value">Registration ID: %1$s</string>
+    <string name="error_status">ERROR</string>
+    <string name="not_available">N/A</string>
+    <string name="result_placeholder">Status: READY&#10;Message: Enter details to register&#10;Registration ID: N/A</string>
+</resources>
