@@ -20,10 +20,11 @@ class HybridWakeWordManager(
         
         // Detection modes
         enum class DetectionMode {
-            PORCUPINE,      // Picovoice Porcupine (existing)
-            TENSORFLOW_LITE, // TensorFlow Lite models
-            SIMPLE_NEURAL,   // Custom lightweight neural network
-            AUTO            // Automatically choose best option
+            PORCUPINE,        // Picovoice Porcupine (existing)
+            TENSORFLOW_LITE,  // TensorFlow Lite models
+            SIMPLE_NEURAL,    // Custom lightweight neural network
+            TEMPLATE_MATCHING,// DTW comparison against user's saved recording (recommended)
+            AUTO              // Automatically choose best option
         }
         
         // Performance profiles
@@ -40,6 +41,7 @@ class HybridWakeWordManager(
     // Detection engines
     private var tfliteDetector: LightweightWakeWordDetector? = null
     private var simpleNeuralDetector: SimpleNeuralWakeWordDetector? = null
+    private var templateDetector: TemplateWakeWordDetector? = null
     
     // Current configuration
     private var currentMode = DetectionMode.AUTO
@@ -103,18 +105,18 @@ class HybridWakeWordManager(
 
         return try {
             val selectedDetector = selectOptimalDetector(mode, profile, wakeWord)
-            
+
             when (selectedDetector) {
-                DetectionMode.TENSORFLOW_LITE -> startTensorFlowLiteDetection(wakeWord)
-                DetectionMode.SIMPLE_NEURAL -> startSimpleNeuralDetection(wakeWord)
+                DetectionMode.TEMPLATE_MATCHING -> startTemplateMatchingDetection(wakeWord)
+                DetectionMode.TENSORFLOW_LITE   -> startTensorFlowLiteDetection(wakeWord)
+                DetectionMode.SIMPLE_NEURAL     -> startSimpleNeuralDetection(wakeWord)
                 DetectionMode.PORCUPINE -> {
-                    // Fallback to existing Porcupine implementation
                     Log.i(TAG, "Falling back to Porcupine detection")
                     callback.onDetectorSwitched("Porcupine", "Selected as optimal detector")
-                    true // Assuming Porcupine is handled elsewhere
+                    true
                 }
                 DetectionMode.AUTO -> {
-                    Log.w(TAG, "AUTO mode reached when expression, using simple neural")
+                    Log.w(TAG, "AUTO mode reached end of chain, using simple neural")
                     startSimpleNeuralDetection(wakeWord)
                 }
             }
@@ -130,10 +132,11 @@ class HybridWakeWordManager(
      */
     fun stopDetection() {
         isListening = false
-        
+
         try {
             tfliteDetector?.stopListening()
             simpleNeuralDetector?.stopListening()
+            templateDetector?.stopListening()
             
             Log.i(TAG, "Stopped wake word detection")
         } catch (e: Exception) {
@@ -151,9 +154,12 @@ class HybridWakeWordManager(
         try {
             tfliteDetector?.release()
             tfliteDetector = null
-            
+
             simpleNeuralDetector?.release()
             simpleNeuralDetector = null
+
+            templateDetector?.release()
+            templateDetector = null
             
             Log.i(TAG, "Released all detector resources")
         } catch (e: Exception) {
@@ -232,14 +238,20 @@ class HybridWakeWordManager(
             return mode
         }
 
-        // Auto-selection logic based on profile
+        // AUTO: always prefer template matching when the user has a saved recording
+        val templatePath = getTemplateRecordingPath()
+        if (templatePath != null) {
+            Log.i(TAG, "AUTO selected TEMPLATE_MATCHING – saved recording found at $templatePath")
+            return DetectionMode.TEMPLATE_MATCHING
+        }
+
+        // No saved recording – fall back to profile-based selection
         return when (profile) {
             PerformanceProfile.ULTRA_LOW_POWER -> {
                 Log.i(TAG, "Selected simple neural for ultra-low power")
                 DetectionMode.SIMPLE_NEURAL
             }
             PerformanceProfile.BALANCED -> {
-                // Prefer TensorFlow Lite if available, otherwise simple neural
                 if (availableModels.values.any { it.detectorType == DetectionMode.TENSORFLOW_LITE }) {
                     Log.i(TAG, "Selected TensorFlow Lite for balanced profile")
                     DetectionMode.TENSORFLOW_LITE
@@ -249,7 +261,6 @@ class HybridWakeWordManager(
                 }
             }
             PerformanceProfile.HIGH_ACCURACY -> {
-                // Prefer Porcupine for highest accuracy
                 Log.i(TAG, "Selected Porcupine for high accuracy")
                 DetectionMode.PORCUPINE
             }
@@ -308,6 +319,71 @@ class HybridWakeWordManager(
     }
 
     /**
+     * Start template-matching (DTW) detection using the user's saved recording.
+     */
+    private fun startTemplateMatchingDetection(wakeWord: String): Boolean {
+        val templatePath = getTemplateRecordingPath()
+        if (templatePath == null) {
+            Log.w(TAG, "No template recording found – falling back to simple neural")
+            return startSimpleNeuralDetection(wakeWord)
+        }
+
+        return try {
+            templateDetector = TemplateWakeWordDetector(
+                templatePath = templatePath,
+                callback = object : TemplateWakeWordDetector.WakeWordCallback {
+                    override fun onWakeWordDetected(confidence: Float, wakeWord: String) {
+                        callback.onWakeWordDetected(wakeWord, confidence, "Template DTW")
+                    }
+                    override fun onError(error: String) {
+                        Log.e(TAG, "Template DTW error: $error")
+                        callback.onError(error, "Template DTW")
+                    }
+                }
+            )
+
+            if (templateDetector?.initialize() == true && templateDetector?.startListening() == true) {
+                isListening = true
+                callback.onDetectorSwitched("Template DTW", "Matched against user recording")
+                Log.i(TAG, "Started template DTW detection from $templatePath")
+                true
+            } else {
+                Log.w(TAG, "Template DTW failed to start – falling back to simple neural")
+                templateDetector = null
+                startSimpleNeuralDetection(wakeWord)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error starting template detection", e)
+            startSimpleNeuralDetection(wakeWord)
+        }
+    }
+
+    /** Returns the path of the saved wake-phrase recording, or null if none exists. */
+    private fun getTemplateRecordingPath(): String? {
+        // Primary location written by RecordFragment (new format, 16 kHz AAC)
+        val m4a = java.io.File(context.filesDir, "wake_phrase_recording.m4a")
+        Log.w(TAG, "TEMPLATE CHECK m4a: ${m4a.absolutePath} | exists=${m4a.exists()} | size=${m4a.length()}")
+        if (m4a.exists() && m4a.length() > 0) return m4a.absolutePath
+
+        // Legacy 3gp location (8 kHz AMR-NB)
+        val gp3 = java.io.File(context.filesDir, "wake_phrase_recording.3gp")
+        Log.w(TAG, "TEMPLATE CHECK 3gp: ${gp3.absolutePath} | exists=${gp3.exists()} | size=${gp3.length()}")
+        if (gp3.exists() && gp3.length() > 0) return gp3.absolutePath
+
+        // Also check for path saved in SharedPreferences by PreferencesManager
+        // PreferencesManager uses PREF_NAME = "wype_preferences", key = "wake_phrase_audio"
+        return try {
+            val prefs = context.getSharedPreferences("wype_preferences", android.content.Context.MODE_PRIVATE)
+            val saved = prefs.getString("wake_phrase_audio", null)
+            Log.w(TAG, "TEMPLATE CHECK prefs path: '$saved' | fileExists=${if (saved != null) java.io.File(saved).exists() else false}")
+            if (!saved.isNullOrEmpty() && java.io.File(saved).exists()) saved else null
+        } catch (e: Exception) {
+            Log.e(TAG, "Error reading prefs audio path", e)
+            null
+        }
+    }
+
+    /**
      * Start simple neural network detection
      */
     private fun startSimpleNeuralDetection(wakeWord: String): Boolean {
@@ -357,12 +433,12 @@ class HybridWakeWordManager(
      */
     fun getCurrentDetectorInfo(): String {
         return when {
-            tfliteDetector != null && isListening -> {
-                tfliteDetector?.getModelInfo() ?: "TensorFlow Lite (unknown)"
-            }
-            simpleNeuralDetector != null && isListening -> {
+            templateDetector    != null && isListening ->
+                templateDetector?.getModelInfo()    ?: "Template DTW (unknown)"
+            tfliteDetector      != null && isListening ->
+                tfliteDetector?.getModelInfo()      ?: "TensorFlow Lite (unknown)"
+            simpleNeuralDetector != null && isListening ->
                 simpleNeuralDetector?.getModelInfo() ?: "Simple Neural (unknown)"
-            }
             else -> "No active detector"
         }
     }

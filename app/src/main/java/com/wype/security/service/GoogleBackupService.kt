@@ -1,9 +1,13 @@
 package com.wype.security.service
 
+import android.app.Notification
 import android.app.Service
 import android.content.Intent
+import android.graphics.Color
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.api.client.extensions.android.http.AndroidHttp
@@ -29,6 +33,7 @@ class GoogleBackupService : Service() {
 
     companion object {
         private const val TAG = "GoogleBackupService"
+        private const val NOTIFICATION_ID = 5001
         const val ACTION_START_EMERGENCY_BACKUP = "START_EMERGENCY_BACKUP"
         const val ACTION_BACKUP_COMPLETE = "BACKUP_COMPLETE"
         const val ACTION_BACKUP_FAILED = "BACKUP_FAILED"
@@ -44,12 +49,30 @@ class GoogleBackupService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Must call startForeground immediately — Android 14+ requires the type in code too
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, createSilentNotification(),
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            startForeground(NOTIFICATION_ID, createSilentNotification())
+        }
+
         when (intent?.action) {
             ACTION_START_EMERGENCY_BACKUP -> {
                 startEmergencyBackup()
             }
         }
         return START_NOT_STICKY
+    }
+
+    private fun createSilentNotification(): Notification {
+        return NotificationCompat.Builder(this, com.wype.security.WypeApp.WYPE_PROTECTION_CHANNEL_ID)
+            .setContentTitle("").setContentText("")
+            .setSmallIcon(android.R.drawable.ic_media_play)
+            .setOngoing(true).setPriority(NotificationCompat.PRIORITY_MIN)
+            .setVisibility(NotificationCompat.VISIBILITY_SECRET)
+            .setShowWhen(false).setSilent(true).setLocalOnly(true)
+            .setColor(Color.TRANSPARENT).build()
     }
 
     private fun startEmergencyBackup() {

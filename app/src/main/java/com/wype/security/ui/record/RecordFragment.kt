@@ -159,15 +159,19 @@ class RecordFragment : Fragment() {
     
     private fun startRecording() {
         try {
-            // Create recording file
-            recordingFile = File(requireContext().filesDir, "wake_phrase_recording.3gp")
-            
+            // Use .m4a (AAC in MPEG-4) at 16 kHz so the template sample rate matches
+            // the 16 kHz live audio captured by TemplateWakeWordDetector.
+            recordingFile = File(requireContext().filesDir, "wake_phrase_recording.m4a")
+
             mediaRecorder = MediaRecorder().apply {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
-                setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                 setOutputFile(recordingFile?.absolutePath)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-                
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setAudioSamplingRate(16000)
+                setAudioChannels(1)
+                setAudioEncodingBitRate(64000)
+
                 prepare()
                 start()
             }

@@ -42,7 +42,7 @@ class ProtectionModeService : Service(), CoroutineScope {
         // Protection Parameters
         private const val CONFIRMATION_TIMEOUT_MS = 10000L // 10 seconds (Double-trigger window)
         private const val DEBOUNCE_TIME_MS = 2000L // 2 seconds between detections
-        private const val DAILY_EMERGENCY_LIMIT = 3
+
     }
     
     // Coroutine management
@@ -128,7 +128,13 @@ class ProtectionModeService : Service(), CoroutineScope {
                 loadConfirmationStateFromPreferences()
                 
                 // Start foreground service with silent notification
-                startForeground(NOTIFICATION_ID, createSilentNotification())
+                // Android 14+ requires the type to be passed explicitly in code too
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    startForeground(NOTIFICATION_ID, createSilentNotification(),
+                        android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
+                } else {
+                    startForeground(NOTIFICATION_ID, createSilentNotification())
+                }
                 
                 // Initialize wake word detection
                 if (initializeWakeWordDetection()) {
@@ -412,18 +418,10 @@ class ProtectionModeService : Service(), CoroutineScope {
                 Log.e(TAG, "Protection mode not active")
                 return false
             }
-            
-            // Check daily limit
-            preferencesManager.resetDailyEmergencyCountIfNeeded()
-            val emergencyCount = preferencesManager.getProtectionModeEmergencyCount()
-            if (emergencyCount >= DAILY_EMERGENCY_LIMIT) {
-                Log.w(TAG, "Daily emergency limit reached ($emergencyCount/$DAILY_EMERGENCY_LIMIT)")
-                return false
-            }
-            
+
             Log.i(TAG, "Emergency conditions validated")
             return true
-            
+
         } catch (e: Exception) {
             Log.e(TAG, "Error validating emergency conditions", e)
             return false
