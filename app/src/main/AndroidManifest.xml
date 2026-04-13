@@ -13,10 +13,6 @@
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     
-    <!-- Location Permissions (for emergency SMS) -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    
     <!-- Device Admin Permission -->
     <uses-permission android:name="android.permission.BIND_DEVICE_ADMIN" />
     
@@ -29,6 +25,7 @@
     <!-- Google Backup Permissions -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     
     <!-- Boot receiver for starting service after restart -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -141,13 +138,15 @@
         <service
             android:name=".service.EmergencySmsService"
             android:enabled="true"
-            android:exported="false" />
-        
+            android:exported="false"
+            android:foregroundServiceType="shortService" />
+
         <!-- Google Backup Service -->
         <service
             android:name=".service.GoogleBackupService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
         
         <!-- Device Admin Receiver -->
         <receiver
@@ -212,7 +211,8 @@
         <service
             android:name=".service.FactoryResetService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="shortService" />
         
         <!-- Emergency Alert Worker (WorkManager) -->
         <service

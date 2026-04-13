@@ -12,15 +12,12 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Color
-import android.location.Location
-import android.location.LocationManager
 import android.os.Build
 import android.os.IBinder
 import android.telephony.SmsManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ActivityCompat
-import com.wype.security.ui.buddy.BuddyViewModel
 import com.wype.security.utils.PreferencesManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -59,7 +56,13 @@ class EmergencySmsService : Service() {
         when (intent?.action) {
             ACTION_SEND_EMERGENCY_SMS -> {
                 // Start as foreground service for critical emergency operation
-                startForeground(NOTIFICATION_ID, createEmergencyNotification())
+                // Android 14+ requires the type to be passed explicitly in code too
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    startForeground(NOTIFICATION_ID, createEmergencyNotification(),
+                        android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
+                } else {
+                    startForeground(NOTIFICATION_ID, createEmergencyNotification())
+                }
                 sendEmergencySms()
             }
         }
@@ -70,19 +73,10 @@ class EmergencySmsService : Service() {
     }
 
     private fun sendEmergencySms() {
-        Log.w(TAG, "Emergency SMS sending initiated - checking for duplicates")
-        
-        // Additional duplicate check at SMS service level
-        val lastSmsTime = preferencesManager.getLastEmergencySmsTime()
+        Log.w(TAG, "Emergency SMS sending initiated")
+
         val currentTime = System.currentTimeMillis()
-        val smsMinimumInterval = 300000L // 5 minutes minimum between SMS
-        
-        if (currentTime - lastSmsTime < smsMinimumInterval) {
-            val remainingMinutes = ((smsMinimumInterval - (currentTime - lastSmsTime)) / 60000L) + 1
-            Log.w(TAG, "SMS BLOCKED: Duplicate prevention - wait $remainingMinutes more minutes")
-            return
-        }
-        
+
         // Check if we have SMS permission
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.SEND_SMS
@@ -114,58 +108,12 @@ class EmergencySmsService : Service() {
     private fun createEmergencyMessage(): String {
         val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
             .format(Date())
-        
-        val locationInfo = getCurrentLocation()
-        
+
         return buildString {
-            append("🚨 EMERGENCY ALERT 🚨\\n")
-            append("WYPE security app detected emergency phrase.\\n")
-            append("Time: $timestamp\\n")
-            if (locationInfo.isNotEmpty()) {
-                append("Location: $locationInfo\\n")
-            }
+            append("EMERGENCY ALERT\n")
+            append("WYPE security app detected emergency phrase.\n")
+            append("Time: $timestamp\n")
             append("Device security measures have been activated.")
-        }
-    }
-    
-    private fun getCurrentLocation(): String {
-        // Check location permission
-        if (ActivityCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return "Location unavailable (no permission)"
-        }
-        
-        try {
-            val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            
-            // Try to get last known location
-            val providers = locationManager.getProviders(true)
-            var bestLocation: Location? = null
-            
-            for (provider in providers) {
-                val location = locationManager.getLastKnownLocation(provider)
-                if (location != null) {
-                    if (bestLocation == null || location.accuracy < bestLocation.accuracy) {
-                        bestLocation = location
-                    }
-                }
-            }
-            
-            return if (bestLocation != null) {
-                "Lat: ${String.format("%.6f", bestLocation.latitude)}, " +
-                "Lng: ${String.format("%.6f", bestLocation.longitude)}"
-            } else {
-                "Location unavailable"
-            }
-            
-        } catch (e: Exception) {
-            Log.e(TAG, "Error getting location", e)
-            return "Location error"
         }
     }
     
