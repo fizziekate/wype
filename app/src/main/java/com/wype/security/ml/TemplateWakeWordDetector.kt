@@ -72,11 +72,14 @@ class TemplateWakeWordDetector(
 
     // ---- audio infrastructure ----
     private var audioRecord: AudioRecord? = null
+    @Volatile
     private var isListening = false
 
     // Circular buffer
     private val sampleBuffer = FloatArray(BUFFER_SAMPLES)
+    @Volatile
     private var bufferWritePos = 0
+    @Volatile
     private var bufferFilled   = false
 
     // ---- template ----

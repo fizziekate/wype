@@ -362,12 +362,10 @@ class HybridWakeWordManager(
     private fun getTemplateRecordingPath(): String? {
         // Primary location written by RecordFragment (new format, 16 kHz AAC)
         val m4a = java.io.File(context.filesDir, "wake_phrase_recording.m4a")
-        Log.w(TAG, "TEMPLATE CHECK m4a: ${m4a.absolutePath} | exists=${m4a.exists()} | size=${m4a.length()}")
         if (m4a.exists() && m4a.length() > 0) return m4a.absolutePath
 
         // Legacy 3gp location (8 kHz AMR-NB)
         val gp3 = java.io.File(context.filesDir, "wake_phrase_recording.3gp")
-        Log.w(TAG, "TEMPLATE CHECK 3gp: ${gp3.absolutePath} | exists=${gp3.exists()} | size=${gp3.length()}")
         if (gp3.exists() && gp3.length() > 0) return gp3.absolutePath
 
         // Also check for path saved in SharedPreferences by PreferencesManager
@@ -375,7 +373,6 @@ class HybridWakeWordManager(
         return try {
             val prefs = context.getSharedPreferences("wype_preferences", android.content.Context.MODE_PRIVATE)
             val saved = prefs.getString("wake_phrase_audio", null)
-            Log.w(TAG, "TEMPLATE CHECK prefs path: '$saved' | fileExists=${if (saved != null) java.io.File(saved).exists() else false}")
             if (!saved.isNullOrEmpty() && java.io.File(saved).exists()) saved else null
         } catch (e: Exception) {
             Log.e(TAG, "Error reading prefs audio path", e)

@@ -205,7 +205,7 @@
             android:name=".service.ProtectionModeService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="microphone" />
+            android:foregroundServiceType="microphone|shortService" />
         
         <!-- Factory Reset Service -->
         <service
