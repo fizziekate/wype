@@ -33,8 +33,6 @@ class PermissionManager(private val activity: Activity) {
         val REQUIRED_PERMISSIONS = arrayOf(
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.SEND_SMS,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.READ_CONTACTS,
             Manifest.permission.GET_ACCOUNTS,
             Manifest.permission.WAKE_LOCK,
@@ -362,10 +360,6 @@ class PermissionManager(private val activity: Activity) {
             
             Manifest.permission.SEND_SMS -> 
                 "Wype needs SMS permission to send emergency alerts to your trusted contacts."
-            
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION -> 
-                "Wype needs location access to include your location in emergency alerts."
             
             Manifest.permission.READ_CONTACTS -> 
                 "Wype needs contacts access to help you select emergency contacts easily."

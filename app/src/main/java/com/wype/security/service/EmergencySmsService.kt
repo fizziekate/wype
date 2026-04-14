@@ -38,6 +38,10 @@ class EmergencySmsService : Service() {
         private const val SMS_SENT_REQUEST_CODE = 1001
         private const val SMS_DELIVERED_REQUEST_CODE = 1002
         private const val NOTIFICATION_ID = 2001
+
+        // Minimum time between emergency SMS sends (60 minutes).
+        // Prevents duplicate sends if the service is somehow started more than once.
+        private const val SMS_COOLDOWN_MS = 60 * 60 * 1000L
     }
 
     private lateinit var preferencesManager: PreferencesManager
@@ -76,6 +80,13 @@ class EmergencySmsService : Service() {
         Log.w(TAG, "Emergency SMS sending initiated")
 
         val currentTime = System.currentTimeMillis()
+
+        // Guard: reject if an SMS was already sent recently (duplicate-start protection)
+        val lastSent = preferencesManager.getLastEmergencySmsTime()
+        if (lastSent > 0 && currentTime - lastSent < SMS_COOLDOWN_MS) {
+            Log.w(TAG, "SMS already sent ${(currentTime - lastSent) / 1000}s ago — skipping duplicate")
+            return
+        }
 
         // Check if we have SMS permission
         if (ActivityCompat.checkSelfPermission(

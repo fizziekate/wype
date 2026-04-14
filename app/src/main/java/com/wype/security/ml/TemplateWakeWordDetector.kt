@@ -50,8 +50,11 @@ class TemplateWakeWordDetector(
         private val HOP_SAMPLES             = SAMPLE_RATE * HOP_SIZE_MS  / 1000  // 160
 
         // ---- detection ----
-        // Lower = stricter match required.  Tune for your environment.
-        private const val DTW_MATCH_THRESHOLD = 7.5f
+        // Normalized DTW distance threshold (after CMN normalisation both template
+        // and live features have zero mean / unit variance per coefficient, so
+        // per-frame euclidean distances are typically 0–6; a threshold of 2.5
+        // gives tight matching.  Increase if legitimate detections are missed.
+        private const val DTW_MATCH_THRESHOLD = 4.0f
         private const val COOLDOWN_MS       = 2_000L
         private const val CHECK_INTERVAL_MS = 250L   // run DTW 4× per second
 
@@ -104,7 +107,8 @@ class TemplateWakeWordDetector(
                 callback.onError("No valid template recording found at $templatePath")
                 return false
             }
-            templateFeatures = feats
+            // Normalise template once so DTW operates on zero-mean/unit-var coefficients
+            templateFeatures = cmnNormalize(feats)
             Log.i(TAG, "Template loaded: ${feats.size} MFCC frames from $templatePath")
 
             initializeAudioRecord()
@@ -185,13 +189,13 @@ class TemplateWakeWordDetector(
 
             try {
                 val snapshot     = getBufferSnapshot()
-                val liveFeatures = extractMfccFrames(snapshot)
+                val liveFeatures = cmnNormalize(extractMfccFrames(snapshot))
                 if (liveFeatures.isEmpty()) continue
 
                 val distance       = dtw(template, liveFeatures)
                 val normalizedDist = distance / template.size.toFloat()
 
-                Log.v(TAG, "DTW distance: ${"%.2f".format(normalizedDist)}  (threshold $DTW_MATCH_THRESHOLD)")
+                Log.v(TAG, "DTW dist (normalised): ${"%.3f".format(normalizedDist)}  threshold=$DTW_MATCH_THRESHOLD")
 
                 if (normalizedDist < DTW_MATCH_THRESHOLD) {
                     lastDetectionTime = now
@@ -245,6 +249,26 @@ class TemplateWakeWordDetector(
             start += HOP_SAMPLES
         }
         return frames.toTypedArray()
+    }
+
+    // ================================================================
+    // Cepstral Mean Normalisation
+    // ================================================================
+
+    /**
+     * Subtract the per-coefficient mean and divide by std across all frames
+     * so that DTW distances are scale-independent (typically 0–6 per frame).
+     */
+    private fun cmnNormalize(frames: Array<FloatArray>): Array<FloatArray> {
+        if (frames.isEmpty()) return frames
+        val n = frames.size
+        val c = frames[0].size
+        val mean = FloatArray(c) { coeff -> frames.sumOf { it[coeff].toDouble() }.toFloat() / n }
+        val std  = FloatArray(c) { coeff ->
+            val m = mean[coeff]
+            sqrt(frames.sumOf { ((it[coeff] - m) * (it[coeff] - m)).toDouble() }.toFloat() / n + 1e-8f)
+        }
+        return Array(n) { i -> FloatArray(c) { coeff -> (frames[i][coeff] - mean[coeff]) / std[coeff] } }
     }
 
     // ================================================================

@@ -22,7 +22,6 @@ import androidx.fragment.app.Fragment
  * Handles runtime permissions correctly for Android 13/14+ including:
  * - RECORD_AUDIO (required for hotword detection)
  * - POST_NOTIFICATIONS (Android 13+)
- * - ACCESS_FINE_LOCATION (for emergency GPS)
  * - SEND_SMS (for emergency SMS alerts)
  * - Battery optimization exemption
  * 
@@ -47,7 +46,6 @@ class PermissionsHelper private constructor() {
         
         // Emergency feature permissions (optional but recommended)
         val EMERGENCY_PERMISSIONS = arrayOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.SEND_SMS
         )
         
