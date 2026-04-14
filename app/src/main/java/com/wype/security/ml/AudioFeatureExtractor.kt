@@ -122,26 +122,52 @@ class AudioFeatureExtractor {
     }
     
     /**
-     * Compute FFT using simple DFT (lightweight implementation)
+     * Compute FFT using radix-2 Cooley-Tukey algorithm — O(n log n).
+     * Frame size must be a power of 2 (FRAME_SIZE = 512 satisfies this).
      */
     private fun computeFFT(frame: FloatArray): Array<Complex> {
-        val n = frame.size
-        val result = Array(n / 2 + 1) { Complex(0.0, 0.0) }
-        
-        for (k in result.indices) {
-            var real = 0.0
-            var imag = 0.0
-            
-            for (t in 0 until n) {
-                val angle = -2.0 * PI * k * t / n
-                real += frame[t] * cos(angle)
-                imag += frame[t] * sin(angle)
+        val n = frame.size                          // 512 — power of 2
+        val re = DoubleArray(n) { frame[it].toDouble() }
+        val im = DoubleArray(n)                     // imaginary part starts at 0
+
+        // ---- bit-reversal permutation ----
+        var j = 0
+        for (i in 1 until n) {
+            var bit = n shr 1
+            while (j and bit != 0) { j = j xor bit; bit = bit shr 1 }
+            j = j xor bit
+            if (i < j) {
+                re[i] = re[j].also { re[j] = re[i] }
+                im[i] = im[j].also { im[j] = im[i] }
             }
-            
-            result[k] = Complex(real, imag)
         }
-        
-        return result
+
+        // ---- Cooley-Tukey butterfly ----
+        var len = 2
+        while (len <= n) {
+            val half = len shr 1
+            val ang  = -2.0 * PI / len
+            val wbR  = cos(ang)
+            val wbI  = sin(ang)
+            var s = 0
+            while (s < n) {
+                var wR = 1.0; var wI = 0.0
+                for (k in 0 until half) {
+                    val uR = re[s + k];          val uI = im[s + k]
+                    val vR = re[s + k + half] * wR - im[s + k + half] * wI
+                    val vI = re[s + k + half] * wI + im[s + k + half] * wR
+                    re[s + k]        = uR + vR;  im[s + k]        = uI + vI
+                    re[s + k + half] = uR - vR;  im[s + k + half] = uI - vI
+                    val nwR = wR * wbR - wI * wbI
+                    wI = wR * wbI + wI * wbR;    wR = nwR
+                }
+                s += len
+            }
+            len = len shl 1
+        }
+
+        // Return only the first n/2+1 bins (positive frequencies)
+        return Array(n / 2 + 1) { i -> Complex(re[i], im[i]) }
     }
     
     /**

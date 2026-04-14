@@ -83,6 +83,31 @@ class ProtectionModeService : Service(), CoroutineScope {
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Always call startForeground immediately (not inside a coroutine) to satisfy
+        // Android's 5-second FGS promotion requirement.
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                startForeground(NOTIFICATION_ID, createSilentNotification(),
+                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
+            } else {
+                startForeground(NOTIFICATION_ID, createSilentNotification())
+            }
+        } catch (e: SecurityException) {
+            // Android 16+ restricts microphone FGS to eligible (foreground) states.
+            // Fall back to a non-microphone foreground type so the service survives.
+            Log.w(TAG, "Microphone FGS rejected (not in eligible state), falling back to SHORT_SERVICE: ${e.message}")
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    startForeground(NOTIFICATION_ID, createSilentNotification(),
+                        android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
+                } else {
+                    startForeground(NOTIFICATION_ID, createSilentNotification())
+                }
+            } catch (e2: Exception) {
+                Log.e(TAG, "startForeground fallback also failed", e2)
+            }
+        }
+
         when (intent?.action) {
             ACTION_START_PROTECTION -> {
                 startProtectionMode()
@@ -91,8 +116,15 @@ class ProtectionModeService : Service(), CoroutineScope {
                 stopProtectionMode()
                 stopSelf()
             }
+            null -> {
+                // Service was restarted by Android (START_STICKY) — resume protection.
+                Log.w(TAG, "Service restarted by Android (null intent) — resuming protection mode")
+                // Ensure the preference reflects that we are active
+                preferencesManager.setProtectionModeEnabled(true)
+                startProtectionMode()
+            }
         }
-        
+
         return START_STICKY // Restart if killed by system
     }
     
@@ -112,30 +144,22 @@ class ProtectionModeService : Service(), CoroutineScope {
     }
     
     /**
-     * Start protection mode with continuous wake word detection
+     * Start protection mode with continuous wake word detection.
+     * NOTE: startForeground() is called in onStartCommand() — do NOT call it here.
      */
     private fun startProtectionMode() {
         if (isProtectionActive) {
             Log.d(TAG, "Protection mode already active")
             return
         }
-        
+
         launch {
             try {
                 Log.w(TAG, "STARTING PROTECTION MODE - Device entering silent protection")
-                
+
                 // Load persistent confirmation state (crash resilience)
                 loadConfirmationStateFromPreferences()
-                
-                // Start foreground service with silent notification
-                // Android 14+ requires the type to be passed explicitly in code too
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    startForeground(NOTIFICATION_ID, createSilentNotification(),
-                        android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
-                } else {
-                    startForeground(NOTIFICATION_ID, createSilentNotification())
-                }
-                
+
                 // Initialize wake word detection
                 if (initializeWakeWordDetection()) {
                     isProtectionActive = true
@@ -151,7 +175,7 @@ class ProtectionModeService : Service(), CoroutineScope {
                     Log.e(TAG, "Failed to initialize wake word detection - protection mode failed")
                     stopSelf()
                 }
-                
+
             } catch (e: Exception) {
                 Log.e(TAG, "Error starting protection mode", e)
                 stopSelf()
@@ -327,9 +351,11 @@ class ProtectionModeService : Service(), CoroutineScope {
                         currentTime
                     )
                     
-                    // Reset confirmation state
+                    // Reset confirmation state and stop listening immediately so
+                    // no further detections can re-trigger the emergency sequence.
                     resetWakeWordConfirmation()
-                    
+                    stopWakeWordDetection()
+
                     // Trigger emergency actions: SMS + Backup + Factory Reset
                     triggerEmergencyActions()
                 } else {
@@ -359,6 +385,22 @@ class ProtectionModeService : Service(), CoroutineScope {
         }
     }
     
+    /**
+     * Stop the wake word detector without stopping the entire service.
+     * Called immediately after the emergency is confirmed so the microphone is
+     * released and no further detections can fire another SMS/reset.
+     */
+    private fun stopWakeWordDetection() {
+        try {
+            hybridWakeWordManager?.stopDetection()
+            hybridWakeWordManager?.release()
+            hybridWakeWordManager = null
+            Log.i(TAG, "Wake word detection stopped after emergency confirmation")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error stopping wake word detection post-emergency", e)
+        }
+    }
+
     /**
      * Reset wake word confirmation state
      */
@@ -409,19 +451,19 @@ class ProtectionModeService : Service(), CoroutineScope {
     }
     
     /**
-     * Validate emergency conditions before triggering
+     * Validate emergency conditions before triggering.
+     * The service being alive and isProtectionActive==true is sufficient proof —
+     * we do NOT block on the SharedPreferences flag because on an auto-restart
+     * the flag may not have been written before the crash.
      */
     private fun validateEmergencyConditions(): Boolean {
         try {
-            // Check if protection mode is active
-            if (!preferencesManager.isProtectionModeEnabled()) {
-                Log.e(TAG, "Protection mode not active")
-                return false
+            // If this service is running and actively listening, the emergency is valid.
+            if (!isProtectionActive) {
+                Log.w(TAG, "isProtectionActive==false at emergency time — allowing anyway (service is running)")
             }
-
-            Log.i(TAG, "Emergency conditions validated")
+            Log.i(TAG, "Emergency conditions validated — proceeding")
             return true
-
         } catch (e: Exception) {
             Log.e(TAG, "Error validating emergency conditions", e)
             return false

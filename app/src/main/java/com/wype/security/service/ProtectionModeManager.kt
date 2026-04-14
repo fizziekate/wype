@@ -5,6 +5,7 @@ import android.content.Intent
 import android.util.Log
 import com.wype.security.utils.PreferencesManager
 import kotlinx.coroutines.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Protection Mode Manager
@@ -34,6 +35,10 @@ class ProtectionModeManager private constructor(private val context: Context) {
     private val preferencesManager = PreferencesManager(context)
     private var isProtectionModeActive = false
     private var protectionServiceIntent: Intent? = null
+
+    // Ensures the full emergency sequence (SMS + backup + reset) fires at most once
+    // per protection-mode session, even if multiple detections arrive simultaneously.
+    private val emergencyAlreadyTriggered = AtomicBoolean(false)
     
     /**
      * Enter protection mode automatically after phrase recording
@@ -83,9 +88,10 @@ class ProtectionModeManager private constructor(private val context: Context) {
             
             // Update preferences
             preferencesManager.setProtectionModeEnabled(false)
-            
-            // Mark as inactive
+
+            // Mark as inactive and reset the one-shot emergency guard
             isProtectionModeActive = false
+            emergencyAlreadyTriggered.set(false)
             
             Log.i(TAG, "Protection mode deactivated")
             
@@ -131,9 +137,15 @@ class ProtectionModeManager private constructor(private val context: Context) {
     }
     
     /**
-     * Trigger emergency actions: SMS + Backup + Factory Reset
+     * Trigger emergency actions: SMS + Backup + Factory Reset.
+     * Uses an AtomicBoolean so this executes at most ONCE per manager instance,
+     * even if the wake word fires multiple extra times before the reset completes.
      */
     fun triggerEmergencyActions(allowWithoutProtectionMode: Boolean = false) {
+        if (!emergencyAlreadyTriggered.compareAndSet(false, true)) {
+            Log.w(TAG, "Emergency already triggered — ignoring duplicate call")
+            return
+        }
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 Log.w(TAG, "EMERGENCY ACTIONS TRIGGERED - Executing SMS + Backup + Factory Reset (override=$allowWithoutProtectionMode)")
