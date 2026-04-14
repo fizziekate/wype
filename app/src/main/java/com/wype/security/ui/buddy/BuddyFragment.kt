@@ -206,6 +206,8 @@ class BuddyFragment : Fragment() {
                     "Buddy contact saved: $name ($phone)",
                     Toast.LENGTH_SHORT
                 ).show()
+                // If phrase is also recorded, automatically prompt for permissions and start protection
+                (requireActivity() as? com.wype.security.ui.MainActivity)?.triggerProtectionSetup()
             } else {
                 Toast.makeText(
                     requireContext(),
@@ -247,15 +249,17 @@ class BuddyFragment : Fragment() {
                         val cleanPhone = cleanPhoneNumber(phone)
                         if (isValidPhoneNumber(cleanPhone)) {
                             buddyViewModel.setBuddyContact(name, cleanPhone)
-                            
+
                             // Show the nominated/clicked state permanently
                             showNominatedState()
-                            
+
                             Toast.makeText(
                                 requireContext(),
                                 "Buddy contact saved: $name",
                                 Toast.LENGTH_SHORT
                             ).show()
+                            // If phrase is also recorded, automatically prompt for permissions and start protection
+                            (requireActivity() as? com.wype.security.ui.MainActivity)?.triggerProtectionSetup()
                         } else {
                             Toast.makeText(
                                 requireContext(),

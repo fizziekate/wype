@@ -208,6 +208,8 @@ class RecordFragment : Fragment() {
                     // Automatically save the recording without dialog
                     recordViewModel.saveWakePhrase("Recorded wake phrase")
                     recordViewModel.setAudioFile(file.absolutePath)
+                    // If buddy is also set, automatically prompt for permissions and start protection
+                    (requireActivity() as? com.wype.security.ui.MainActivity)?.triggerProtectionSetup()
                 } else {
                     Log.w(TAG, "Recording file is empty or doesn't exist")
                     // Toast removed to keep UI clean
