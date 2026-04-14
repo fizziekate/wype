@@ -51,6 +51,40 @@
             android:textColorHint="@android:color/transparent"
             android:textSize="20sp" />
 
+        <!-- Phone number row: country code button + number field -->
+        <LinearLayout
+            android:layout_width="299dp"
+            android:layout_height="60dp"
+            android:layout_marginBottom="65dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_country_code"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:minWidth="0dp"
+                android:paddingStart="0dp"
+                android:paddingEnd="8dp"
+                android:text="+61" />
+
+            <EditText
+                android:id="@+id/et_phone"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:hint=""
+                android:inputType="phone"
+                android:padding="16dp"
+                android:textColor="#FFFFFF"
+                android:textColorHint="@android:color/transparent"
+                android:textSize="20sp" />
+
+        </LinearLayout>
+
         <!-- Password input field -->
         <EditText
             android:id="@+id/et_password"

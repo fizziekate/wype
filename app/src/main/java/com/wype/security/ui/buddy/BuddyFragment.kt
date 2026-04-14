@@ -206,6 +206,8 @@ class BuddyFragment : Fragment() {
                     "Buddy contact saved: $name ($phone)",
                     Toast.LENGTH_SHORT
                 ).show()
+                // If phrase is also recorded, automatically prompt for permissions and start protection
+                (requireActivity() as? com.wype.security.ui.MainActivity)?.triggerProtectionSetup()
             } else {
                 Toast.makeText(
                     requireContext(),
@@ -246,16 +248,13 @@ class BuddyFragment : Fragment() {
                         // Clean and validate phone number
                         val cleanPhone = cleanPhoneNumber(phone)
                         if (isValidPhoneNumber(cleanPhone)) {
-                            buddyViewModel.setBuddyContact(name, cleanPhone)
-                            
-                            // Show the nominated/clicked state permanently
-                            showNominatedState()
-                            
-                            Toast.makeText(
-                                requireContext(),
-                                "Buddy contact saved: $name",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            // If the number is already international (+xx…) save it directly.
+                            // Otherwise ask the user to pick a country so we can prepend the dial code.
+                            if (cleanPhone.startsWith("+")) {
+                                saveBuddyContact(name, cleanPhone)
+                            } else {
+                                showCountryCodePickerForContact(name, cleanPhone)
+                            }
                         } else {
                             Toast.makeText(
                                 requireContext(),
@@ -276,6 +275,38 @@ class BuddyFragment : Fragment() {
         }
     }
     
+    /**
+     * Show a country code picker so a locally-formatted contact number (e.g. "0490 101 200")
+     * can be combined with the correct dial code before saving.
+     */
+    private fun showCountryCodePickerForContact(name: String, localPhone: String) {
+        val autoCountry = com.wype.security.utils.CountryCodeHelper.getCurrentCountry(requireContext())
+        CountryCodeDialog(requireContext(), autoCountry) { country ->
+            val fullPhone = com.wype.security.utils.CountryCodeHelper.formatPhoneWithCountryCode(country, localPhone)
+            if (com.wype.security.utils.CountryCodeHelper.isValidInternationalPhone(fullPhone)) {
+                saveBuddyContact(name, fullPhone)
+            } else {
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    "Invalid number — try entering it manually",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+        }.show()
+    }
+
+    /** Save buddy contact, update UI and trigger protection setup if ready. */
+    private fun saveBuddyContact(name: String, fullPhone: String) {
+        buddyViewModel.setBuddyContact(name, fullPhone)
+        showNominatedState()
+        android.widget.Toast.makeText(
+            requireContext(),
+            "Buddy contact saved: $name",
+            android.widget.Toast.LENGTH_SHORT
+        ).show()
+        (requireActivity() as? com.wype.security.ui.MainActivity)?.triggerProtectionSetup()
+    }
+
     private fun handleTestSmsRequest() {
         if (!buddyViewModel.hasBuddy.value!!) {
             Toast.makeText(requireContext(), "Please select a buddy contact first", Toast.LENGTH_SHORT).show()

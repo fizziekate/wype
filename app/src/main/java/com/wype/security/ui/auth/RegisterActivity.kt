@@ -1,16 +1,15 @@
 package com.wype.security.ui.auth
 
-import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
-import android.text.InputType
-import android.widget.EditText
-import android.widget.LinearLayout
+import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.wype.security.databinding.ActivityRegisterBinding
 import com.wype.security.ui.MainActivity
+import com.wype.security.ui.buddy.CountryCodeDialog
+import com.wype.security.utils.CountryCodeHelper
 import com.wype.security.utils.PreferencesManager
 
 class RegisterActivity : AppCompatActivity() {
@@ -19,34 +18,47 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var auth: FirebaseAuth
 
+    private var selectedCountry: CountryCodeHelper.CountryInfo? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        
+
         preferencesManager = PreferencesManager(this)
         auth = FirebaseAuth.getInstance()
-        
+
+        // Auto-detect country and set initial dial code on the button
+        selectedCountry = CountryCodeHelper.getCurrentCountry(this)
+        updateCountryButton()
+
+        binding.btnCountryCode.setOnClickListener {
+            CountryCodeDialog(this, selectedCountry) { country ->
+                selectedCountry = country
+                updateCountryButton()
+            }.show()
+        }
+
         setupClickListeners()
     }
-    
-    private fun setupClickListeners() {
-        // Register button
-        binding.btnRegister.setOnClickListener {
-            performRegistration()
-        }
-        
-        // Back to login button
-        binding.btnBackToLogin.setOnClickListener {
-            finish() // Go back to login
+
+    private fun updateCountryButton() {
+        selectedCountry?.let {
+            binding.btnCountryCode.text = "${it.flag} ${it.dialCode}"
         }
     }
-    
+
+    private fun setupClickListeners() {
+        binding.btnRegister.setOnClickListener { performRegistration() }
+        binding.btnBackToLogin.setOnClickListener { finish() }
+    }
+
     private fun performRegistration() {
         val email = binding.etEmail.text.toString().trim()
         val password = binding.etPassword.text.toString().trim()
         val confirmPassword = binding.etConfirmPassword.text.toString().trim()
+        val localPhone = binding.etPhone.text.toString().trim()
         
         if (email.isEmpty()) {
             binding.etEmail.error = "Email is required"
@@ -77,17 +89,29 @@ class RegisterActivity : AppCompatActivity() {
             binding.etConfirmPassword.requestFocus()
             return
         }
-        
+
+        // Build full international phone number
+        val fullPhone: String? = if (localPhone.isNotEmpty()) {
+            val country = selectedCountry
+            if (country == null) {
+                Toast.makeText(this, "Please select a country code", Toast.LENGTH_SHORT).show()
+                return
+            }
+            CountryCodeHelper.formatPhoneWithCountryCode(country, localPhone)
+        } else null
+
         // Show loading state
         Toast.makeText(this, "Creating account...", Toast.LENGTH_SHORT).show()
-        
+
         // Firebase Authentication
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    // Sign in success, update UI with the signed-in user's information
-                    val user = auth.currentUser
                     preferencesManager.setUserLoggedIn(true)
+                    // Save phone number if provided
+                    if (!fullPhone.isNullOrEmpty()) {
+                        preferencesManager.setUserPhone(fullPhone)
+                    }
                     Toast.makeText(this, "Registration successful!", Toast.LENGTH_SHORT).show()
                     startMainActivity()
                 } else {
@@ -114,12 +138,5 @@ class RegisterActivity : AppCompatActivity() {
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
-    }
-    
-    private fun showButtonPressed() {
-        // Show clicked state briefly on the register background
-        binding.registerBackground.postDelayed({
-            // You can add visual feedback here if needed
-        }, 150)
     }
 }

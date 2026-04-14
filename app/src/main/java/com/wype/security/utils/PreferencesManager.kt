@@ -23,6 +23,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_USERNAME = "username"
         private const val KEY_PASSWORD = "password"
         private const val KEY_USER_LOGGED_IN = "user_logged_in"
+        private const val KEY_USER_PHONE = "user_phone"
         private const val KEY_BIOMETRIC_ENABLED = "biometric_enabled"
         private const val KEY_BIOMETRIC_EMAIL = "biometric_email"
         private const val KEY_BIOMETRIC_PASSWORD = "biometric_password"
@@ -224,9 +225,17 @@ class PreferencesManager(context: Context) {
     fun setUserLoggedIn(loggedIn: Boolean) {
         sharedPrefs.edit().putBoolean(KEY_USER_LOGGED_IN, loggedIn).apply()
     }
-    
+
     fun isUserLoggedIn(): Boolean {
         return sharedPrefs.getBoolean(KEY_USER_LOGGED_IN, false)
+    }
+
+    fun setUserPhone(phone: String) {
+        sharedPrefs.edit().putString(KEY_USER_PHONE, phone).apply()
+    }
+
+    fun getUserPhone(): String? {
+        return sharedPrefs.getString(KEY_USER_PHONE, null)
     }
     
     fun hasRegisteredUser(): Boolean {

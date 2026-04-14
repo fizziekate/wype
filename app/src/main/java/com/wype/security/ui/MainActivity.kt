@@ -36,10 +36,14 @@ class MainActivity : AppCompatActivity() {
         // Initialize managers
         permissionManager = PermissionManager(this)
         protectionModeManager = ProtectionModeManager.getInstance(this)
-        
-        // Check and request permissions first
-        checkAndRequestPermissions()
-        
+
+        // If protection is already configured and running, ensure permissions are still valid.
+        // Otherwise we defer ALL permission prompts until the user finishes setup.
+        val prefs = PreferencesManager(this)
+        if (prefs.isProtectionModeEnabled()) {
+            checkAndRequestPermissions()
+        }
+
         // Check if we need to automatically start protection mode after setup
         checkAutoStartProtectionMode()
 
@@ -188,26 +192,55 @@ class MainActivity : AppCompatActivity() {
     }
     
     /**
-     * Show welcome dialog explaining why permissions are needed
+     * Called by RecordFragment and BuddyFragment once the user has completed
+     * both setup steps (phrase recorded + buddy nominated).
+     * Requests any missing permissions and then starts protection mode.
+     */
+    fun triggerProtectionSetup() {
+        val prefs = PreferencesManager(this)
+
+        // Not ready yet — one of the two setup steps is still missing
+        if (!prefs.hasWakePhrase() || !prefs.hasBuddyContact()) return
+
+        // Already running — nothing to do
+        if (prefs.isProtectionModeEnabled()) return
+
+        if (!permissionManager.hasAllRequiredPermissions()) {
+            showPermissionWelcomeDialog()
+        } else {
+            startProtectionAutomatically()
+        }
+    }
+
+    /**
+     * Start protection mode automatically (called once permissions are confirmed).
+     */
+    fun startProtectionAutomatically() {
+        val prefs = PreferencesManager(this)
+        val wakePhrase = prefs.getWakePhrase() ?: return
+        protectionModeManager.enterProtectionMode(wakePhrase)
+        Toast.makeText(this, "🛡️ Protection Mode Activated", Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * Show dialog explaining why permissions are needed before activating protection.
      */
     private fun showPermissionWelcomeDialog() {
         MaterialAlertDialogBuilder(this)
-            .setTitle("Welcome to Wype Security")
-            .setMessage("To protect your device, Wype needs several permissions:\n\n" +
-                "🎤 Microphone - Listen for your emergency phrase\n" +
-                "📱 SMS - Send emergency alerts to your contacts\n" +
-                "📍 Location - Include location in emergency messages\n" +
-                "🔒 Device Admin - Perform emergency factory reset\n" +
-                "🔋 Battery - Keep running in background\n\n" +
-                "We'll guide you through granting these permissions.")
-            .setPositiveButton("Grant Permissions") { _, _ ->
+            .setTitle("One last step")
+            .setMessage("To protect your device, Wype needs a few permissions:\n\n" +
+                "🎤 Microphone — listen for your emergency phrase\n" +
+                "📱 SMS — send an alert to your buddy\n" +
+                "🔒 Device Admin — perform emergency factory reset\n" +
+                "🔋 Battery — keep running in the background\n\n" +
+                "Tap Activate to grant them now.")
+            .setPositiveButton("Activate") { _, _ ->
                 permissionManager.requestAllPermissions()
             }
             .setNegativeButton("Later") { dialog, _ ->
                 dialog.dismiss()
-                Toast.makeText(this, "Some features may not work without permissions", Toast.LENGTH_LONG).show()
             }
-            .setCancelable(false)
+            .setCancelable(true)
             .show()
     }
     
@@ -256,13 +289,14 @@ class MainActivity : AppCompatActivity() {
     }
     
     /**
-     * Check current permission status and show appropriate feedback
+     * Check current permission status and show appropriate feedback.
+     * If all permissions are now granted and setup is complete, start protection automatically.
      */
     private fun checkPermissionStatus() {
         if (permissionManager.hasAllRequiredPermissions()) {
-            Toast.makeText(this, "All permissions granted! Wype is now fully protected.", Toast.LENGTH_LONG).show()
-            // Restart the speech service if needed
             startSpeechListenerService()
+            // If the user just finished granting permissions as part of setup, start protection
+            startProtectionAutomatically()
         } else {
             val missing = permissionManager.getMissingPermissionsSummary()
             Toast.makeText(this, missing, Toast.LENGTH_LONG).show()
